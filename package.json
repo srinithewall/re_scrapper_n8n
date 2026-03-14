@@ -1,0 +1,23 @@
+{
+  "name": "propsync-re-scraper",
+  "version": "1.0.0",
+  "description": "Scrape housing.com/in and submit properties to RE Projects API",
+  "main": "scraper.js",
+  "scripts": {
+    "start": "node scraper.js",
+    "scrape-only": "node scraper.js --scrape-only",
+    "submit-only": "node scraper.js --submit-only",
+    "dry-run": "node scraper.js --dry-run",
+    "puppeteer": "node scraper-puppeteer.js",
+    "puppeteer-dry": "node scraper-puppeteer.js --dry-run",
+    "n8n": "node n8n-runner.js",
+    "n8n-dry": "node n8n-runner.js --dry-run",
+    "server": "node scraper-server.js"
+  },
+  "dependencies": {
+    "puppeteer": "^21.11.0"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

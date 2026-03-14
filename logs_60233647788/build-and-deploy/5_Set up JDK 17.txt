@@ -1,0 +1,124 @@
+﻿2026-03-11T20:06:02.2191628Z ##[debug]Evaluating condition for step: 'Set up JDK 17'
+2026-03-11T20:06:02.2193711Z ##[debug]Evaluating: success()
+2026-03-11T20:06:02.2194224Z ##[debug]Evaluating success:
+2026-03-11T20:06:02.2195139Z ##[debug]=> true
+2026-03-11T20:06:02.2195656Z ##[debug]Result: true
+2026-03-11T20:06:02.2196419Z ##[debug]Starting: Set up JDK 17
+2026-03-11T20:06:02.2246962Z ##[debug]Register post job cleanup for action: actions/setup-java@v4
+2026-03-11T20:06:02.2259428Z ##[debug]Loading inputs
+2026-03-11T20:06:02.2284612Z ##[debug]Evaluating: job.status
+2026-03-11T20:06:02.2285038Z ##[debug]Evaluating Index:
+2026-03-11T20:06:02.2285371Z ##[debug]..Evaluating job:
+2026-03-11T20:06:02.2285721Z ##[debug]..=> Object
+2026-03-11T20:06:02.2286061Z ##[debug]..Evaluating String:
+2026-03-11T20:06:02.2286392Z ##[debug]..=> 'status'
+2026-03-11T20:06:02.2286819Z ##[debug]=> 'success'
+2026-03-11T20:06:02.2287136Z ##[debug]Result: 'success'
+2026-03-11T20:06:02.2294042Z ##[debug]Evaluating: (((github.server_url == 'https://github.com') && github.token) || '')
+2026-03-11T20:06:02.2294981Z ##[debug]Evaluating Or:
+2026-03-11T20:06:02.2296870Z ##[debug]..Evaluating And:
+2026-03-11T20:06:02.2299382Z ##[debug]....Evaluating Equal:
+2026-03-11T20:06:02.2300576Z ##[debug]......Evaluating Index:
+2026-03-11T20:06:02.2300955Z ##[debug]........Evaluating github:
+2026-03-11T20:06:02.2301363Z ##[debug]........=> Object
+2026-03-11T20:06:02.2301706Z ##[debug]........Evaluating String:
+2026-03-11T20:06:02.2302083Z ##[debug]........=> 'server_url'
+2026-03-11T20:06:02.2302485Z ##[debug]......=> 'https://github.com'
+2026-03-11T20:06:02.2302886Z ##[debug]......Evaluating String:
+2026-03-11T20:06:02.2303257Z ##[debug]......=> 'https://github.com'
+2026-03-11T20:06:02.2306671Z ##[debug]....=> true
+2026-03-11T20:06:02.2307204Z ##[debug]....Evaluating Index:
+2026-03-11T20:06:02.2307562Z ##[debug]......Evaluating github:
+2026-03-11T20:06:02.2307916Z ##[debug]......=> Object
+2026-03-11T20:06:02.2308272Z ##[debug]......Evaluating String:
+2026-03-11T20:06:02.2308621Z ##[debug]......=> 'token'
+2026-03-11T20:06:02.2309185Z ##[debug]....=> '***'
+2026-03-11T20:06:02.2309642Z ##[debug]..=> '***'
+2026-03-11T20:06:02.2310257Z ##[debug]=> '***'
+2026-03-11T20:06:02.2315511Z ##[debug]Expanded: ((('https://github.com' == 'https://github.com') && '***') || '')
+2026-03-11T20:06:02.2316216Z ##[debug]Result: '***'
+2026-03-11T20:06:02.2318535Z ##[debug]Loading env
+2026-03-11T20:06:02.2324799Z ##[group]Run actions/setup-java@v4
+2026-03-11T20:06:02.2325158Z with:
+2026-03-11T20:06:02.2325430Z   java-version: 17
+2026-03-11T20:06:02.2325724Z   distribution: temurin
+2026-03-11T20:06:02.2326021Z   cache: maven
+2026-03-11T20:06:02.2326298Z   java-package: jdk
+2026-03-11T20:06:02.2326601Z   check-latest: false
+2026-03-11T20:06:02.2326896Z   server-id: github
+2026-03-11T20:06:02.2327184Z   server-username: GITHUB_ACTOR
+2026-03-11T20:06:02.2327511Z   server-password: GITHUB_TOKEN
+2026-03-11T20:06:02.2327845Z   overwrite-settings: true
+2026-03-11T20:06:02.2328157Z   job-status: success
+2026-03-11T20:06:02.2328568Z   token: ***
+2026-03-11T20:06:02.2328839Z ##[endgroup]
+2026-03-11T20:06:02.4379963Z ::group::Installed distributions
+2026-03-11T20:06:02.4380698Z ##[group]Installed distributions
+2026-03-11T20:06:02.4483404Z ##[debug]isExplicit: 11.0.30-7
+2026-03-11T20:06:02.4484161Z ##[debug]explicit? true
+2026-03-11T20:06:02.4540844Z ##[debug]isExplicit: 17.0.18-8
+2026-03-11T20:06:02.4541581Z ##[debug]explicit? true
+2026-03-11T20:06:02.4630151Z ##[debug]isExplicit: 21.0.10-7
+2026-03-11T20:06:02.4631218Z ##[debug]explicit? true
+2026-03-11T20:06:02.4665534Z ##[debug]isExplicit: 25.0.2-10
+2026-03-11T20:06:02.4666747Z ##[debug]explicit? true
+2026-03-11T20:06:02.4671469Z ##[debug]isExplicit: 8.0.482-8
+2026-03-11T20:06:02.4672699Z ##[debug]explicit? true
+2026-03-11T20:06:02.4727038Z Resolved Java 17.0.18+8 from tool-cache
+2026-03-11T20:06:02.4728522Z Setting Java 17.0.18+8 as the default
+2026-03-11T20:06:02.4743593Z Creating toolchains.xml for JDK version 17 from temurin
+2026-03-11T20:06:02.4825964Z Writing to /home/runner/.m2/toolchains.xml
+2026-03-11T20:06:02.4826833Z 
+2026-03-11T20:06:02.4828608Z Java configuration:
+2026-03-11T20:06:02.4829256Z   Distribution: temurin
+2026-03-11T20:06:02.4829850Z   Version: 17.0.18+8
+2026-03-11T20:06:02.4830769Z   Path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-11T20:06:02.4831489Z 
+2026-03-11T20:06:02.4832569Z ::endgroup::
+2026-03-11T20:06:02.4833060Z ##[endgroup]
+2026-03-11T20:06:02.4841848Z ##[add-matcher]/home/runner/work/_actions/actions/setup-java/v4/.github/java.json
+2026-03-11T20:06:02.4851011Z ##[debug]Added matchers: 'java'. Problem matchers scan action output for known warning or error strings and report these inline.
+2026-03-11T20:06:02.4852150Z Creating settings.xml with server-id: github
+2026-03-11T20:06:02.4852573Z Writing to /home/runner/.m2/settings.xml
+2026-03-11T20:06:02.4857061Z ##[debug]followSymbolicLinks 'true'
+2026-03-11T20:06:02.4881116Z ##[debug]followSymbolicLinks 'true'
+2026-03-11T20:06:02.4882107Z ##[debug]implicitDescendants 'true'
+2026-03-11T20:06:02.4883022Z ##[debug]matchDirectories 'true'
+2026-03-11T20:06:02.4883921Z ##[debug]omitBrokenSymbolicLinks 'true'
+2026-03-11T20:06:02.4884882Z ##[debug]excludeHiddenFiles 'false'
+2026-03-11T20:06:02.4886528Z ##[debug]Search path '/home/runner/work/sthi_db/sthi_db'
+2026-03-11T20:06:02.5011879Z ##[debug]/home/runner/work/sthi_db/sthi_db/pom.xml
+2026-03-11T20:06:02.5071106Z ##[debug]/home/runner/work/sthi_db/sthi_db/re-signature/pom.xml
+2026-03-11T20:06:02.5426879Z ##[debug]Found 2 files to hash.
+2026-03-11T20:06:02.5428448Z ##[debug]primary key is setup-java-Linux-x64-maven-5697019555f0cdbdd90eb8c0fddc8a3172cdf177540cbf19ce37ae5ed00b6b8e
+2026-03-11T20:06:02.5434793Z ##[debug]Cache service version: v2
+2026-03-11T20:06:02.5437775Z ##[debug]Resolved Keys:
+2026-03-11T20:06:02.5439305Z ##[debug]["setup-java-Linux-x64-maven-5697019555f0cdbdd90eb8c0fddc8a3172cdf177540cbf19ce37ae5ed00b6b8e"]
+2026-03-11T20:06:02.5443222Z ##[debug]Checking zstd --quiet --version
+2026-03-11T20:06:02.5544839Z ##[debug]1.5.7
+2026-03-11T20:06:02.5547499Z ##[debug]zstd version: 1.5.7
+2026-03-11T20:06:02.5556473Z ##[debug][Request] GetCacheEntryDownloadURL https://results-receiver.actions.githubusercontent.com/twirp/github.actions.results.api.v1.CacheService/GetCacheEntryDownloadURL
+2026-03-11T20:06:02.7847409Z ##[debug][Response] - 200
+2026-03-11T20:06:02.7849395Z ##[debug]Headers: {
+2026-03-11T20:06:02.7849986Z ##[debug]  "content-length": "54",
+2026-03-11T20:06:02.7850679Z ##[debug]  "content-type": "application/json",
+2026-03-11T20:06:02.7851418Z ##[debug]  "date": "Wed, 11 Mar 2026 20:06:02 GMT",
+2026-03-11T20:06:02.7852124Z ##[debug]  "x-github-backend": "Kubernetes",
+2026-03-11T20:06:02.7852936Z ##[debug]  "x-github-request-id": "0403:B0D06:AA3D33:BB66BA:69B1CB2A"
+2026-03-11T20:06:02.7853770Z ##[debug]}
+2026-03-11T20:06:02.7854894Z ##[debug]Body: {
+2026-03-11T20:06:02.7855397Z ##[debug]  "ok": false,
+2026-03-11T20:06:02.7855937Z ##[debug]  "signed_download_url": "",
+2026-03-11T20:06:02.7856587Z ##[debug]  "matched_key": ""
+2026-03-11T20:06:02.7857168Z ##[debug]}
+2026-03-11T20:06:02.7859241Z ##[debug]Cache not found for version 3d88543681947283edf8997cb89a71c1522b2e39bc75c36ae780bd628eb8559d of keys: setup-java-Linux-x64-maven-5697019555f0cdbdd90eb8c0fddc8a3172cdf177540cbf19ce37ae5ed00b6b8e
+2026-03-11T20:06:02.7861177Z maven cache is not found
+2026-03-11T20:06:02.7952725Z ##[debug]Node Action run completed with exit code 0
+2026-03-11T20:06:02.7961869Z ##[debug]JAVA_HOME='/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64'
+2026-03-11T20:06:02.7963254Z ##[debug]JAVA_HOME_17_X64='/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64'
+2026-03-11T20:06:02.7965918Z ##[debug]Save intra-action state cache-primary-key = setup-java-Linux-x64-maven-5697019555f0cdbdd90eb8c0fddc8a3172cdf177540cbf19ce37ae5ed00b6b8e
+2026-03-11T20:06:02.7967262Z ##[debug]Set output distribution = Temurin-Hotspot
+2026-03-11T20:06:02.7967823Z ##[debug]Set output path = /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-11T20:06:02.7968616Z ##[debug]Set output version = 17.0.18+8
+2026-03-11T20:06:02.7969002Z ##[debug]Set output cache-hit = false
+2026-03-11T20:06:02.7969710Z ##[debug]Finishing: Set up JDK 17

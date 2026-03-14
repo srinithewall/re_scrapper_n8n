@@ -1,0 +1,5 @@
+﻿2026-03-11T20:06:24.3169352Z ##[debug]Evaluating condition for step: 'Restart Docker Compose Service'
+2026-03-11T20:06:24.3170823Z ##[debug]Evaluating: success()
+2026-03-11T20:06:24.3171312Z ##[debug]Evaluating success:
+2026-03-11T20:06:24.3171821Z ##[debug]=> false
+2026-03-11T20:06:24.3172290Z ##[debug]Result: false

@@ -1,0 +1,55 @@
+{
+  "mode": "bootstrap",
+  "windows": {
+    "bootstrap": {
+      "lookbackDays": 90
+    },
+    "daily": {
+      "lookbackHours": 24
+    }
+  },
+  "global": {
+    "apiUrl": "http://43.204.221.192:8880/api/re/projects",
+    "developerLookupUrl": "http://43.204.221.192:8880/api/lookups/developers",
+    "outputFile": "scraped.json",
+    "reportFile": "submission_report.json",
+    "maxImagesPerProject": 7,
+    "dedupeStateFile": "submitted_projects_cache.json",
+    "projectExistsUrlTemplate": "",
+    "projectExistsMethod": "GET"
+  },
+  "apiDefaults": {
+    "constructionStatusid": 5,
+    "developerId": 1,
+    "fallbackDeveloperId": 1,
+    "projectTypeId": 1,
+    "defaultZone": "East",
+    "defaultCity": "Bengaluru",
+    "amenityIds": [5, 6],
+    "developerNameMappings": {
+      "casagrand builder private limited": 20,
+      "casagrand builder pvt ltd": 20,
+      "sumadhura group": 19,
+      "sumadhura infracon pvt ltd": 38,
+      "puravankara limited": 7,
+      "sai purvi developers": 1
+    }
+  },
+  "sources": {
+    "housing": {
+      "enabled": true,
+      "source": "housing.com",
+      "scrapeUrl": "https://housing.com/in/buy/projects/bangalore/bengaluru",
+      "maxPages": 3,
+      "requestDelay": 1500
+    },
+    "99acres": {
+      "enabled": true,
+      "source": "99acres.com",
+      "scrapeUrl": "https://www.99acres.com/search/property/buy/bangalore?city=20&preference=S&area_unit=1&res_com=R",
+      "maxPages": 1,
+      "limit": 5,
+      "requestDelay": 1500
+    }
+  }
+}

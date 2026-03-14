@@ -1,0 +1,64 @@
+﻿2026-03-11T20:06:24.5074069Z ##[debug]Evaluating condition for step: 'Post Checkout Code'
+2026-03-11T20:06:24.5076447Z ##[debug]Evaluating: always()
+2026-03-11T20:06:24.5076955Z ##[debug]Evaluating always:
+2026-03-11T20:06:24.5077428Z ##[debug]=> true
+2026-03-11T20:06:24.5077913Z ##[debug]Result: true
+2026-03-11T20:06:24.5078609Z ##[debug]Starting: Post Checkout Code
+2026-03-11T20:06:24.5113928Z ##[debug]Loading inputs
+2026-03-11T20:06:24.5116010Z ##[debug]Evaluating: github.repository
+2026-03-11T20:06:24.5116428Z ##[debug]Evaluating Index:
+2026-03-11T20:06:24.5116761Z ##[debug]..Evaluating github:
+2026-03-11T20:06:24.5117127Z ##[debug]..=> Object
+2026-03-11T20:06:24.5117451Z ##[debug]..Evaluating String:
+2026-03-11T20:06:24.5117793Z ##[debug]..=> 'repository'
+2026-03-11T20:06:24.5123424Z ##[debug]=> 'srinithewall/sthi_db'
+2026-03-11T20:06:24.5123820Z ##[debug]Result: 'srinithewall/sthi_db'
+2026-03-11T20:06:24.5126365Z ##[debug]Evaluating: github.token
+2026-03-11T20:06:24.5126734Z ##[debug]Evaluating Index:
+2026-03-11T20:06:24.5127051Z ##[debug]..Evaluating github:
+2026-03-11T20:06:24.5127452Z ##[debug]..=> Object
+2026-03-11T20:06:24.5127758Z ##[debug]..Evaluating String:
+2026-03-11T20:06:24.5128089Z ##[debug]..=> 'token'
+2026-03-11T20:06:24.5128594Z ##[debug]=> '***'
+2026-03-11T20:06:24.5129038Z ##[debug]Result: '***'
+2026-03-11T20:06:24.5141917Z ##[debug]Loading env
+2026-03-11T20:06:24.5147440Z Post job cleanup.
+2026-03-11T20:06:24.6144634Z ##[debug]Getting git version
+2026-03-11T20:06:24.6159609Z [command]/usr/bin/git version
+2026-03-11T20:06:24.6198310Z git version 2.53.0
+2026-03-11T20:06:24.6222395Z ##[debug]0
+2026-03-11T20:06:24.6223013Z ##[debug]git version 2.53.0
+2026-03-11T20:06:24.6223370Z ##[debug]
+2026-03-11T20:06:24.6224531Z ##[debug]Set git useragent to: git/2.53.0 (github-actions-checkout)
+2026-03-11T20:06:24.6228301Z ::add-mask::***
+2026-03-11T20:06:24.6244942Z Temporarily overriding HOME='/home/runner/work/_temp/45174236-e3b9-4bc3-8b2c-92270c8042bf' before making global git config changes
+2026-03-11T20:06:24.6246299Z Adding repository directory to the temporary git global config as a safe directory
+2026-03-11T20:06:24.6251236Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/sthi_db/sthi_db
+2026-03-11T20:06:24.6291263Z ##[debug]0
+2026-03-11T20:06:24.6291784Z ##[debug]
+2026-03-11T20:06:24.6299496Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-03-11T20:06:24.6330088Z ##[debug]1
+2026-03-11T20:06:24.6330601Z ##[debug]
+2026-03-11T20:06:24.6336416Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-03-11T20:06:24.6591065Z ##[debug]0
+2026-03-11T20:06:24.6591606Z ##[debug]
+2026-03-11T20:06:24.6601105Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-03-11T20:06:24.6626895Z http.https://github.com/.extraheader
+2026-03-11T20:06:24.6633673Z ##[debug]0
+2026-03-11T20:06:24.6634271Z ##[debug]http.https://github.com/.extraheader
+2026-03-11T20:06:24.6635125Z ##[debug]
+2026-03-11T20:06:24.6640502Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-03-11T20:06:24.6670887Z ##[debug]0
+2026-03-11T20:06:24.6671407Z ##[debug]
+2026-03-11T20:06:24.6677080Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-03-11T20:06:24.6920063Z ##[debug]0
+2026-03-11T20:06:24.6920586Z ##[debug]
+2026-03-11T20:06:24.6927083Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-03-11T20:06:24.6956855Z ##[debug]1
+2026-03-11T20:06:24.6957365Z ##[debug]
+2026-03-11T20:06:24.6963001Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-03-11T20:06:24.7212816Z ##[debug]0
+2026-03-11T20:06:24.7213651Z ##[debug]
+2026-03-11T20:06:24.7215667Z ##[debug]Unsetting HOME override
+2026-03-11T20:06:24.7286028Z ##[debug]Node Action run completed with exit code 0
+2026-03-11T20:06:24.7288590Z ##[debug]Finishing: Post Checkout Code

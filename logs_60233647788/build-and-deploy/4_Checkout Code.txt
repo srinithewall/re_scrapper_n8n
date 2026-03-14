@@ -1,0 +1,184 @@
+﻿2026-03-11T20:06:01.0358228Z ##[debug]Evaluating condition for step: 'Checkout Code'
+2026-03-11T20:06:01.0363446Z ##[debug]Evaluating: success()
+2026-03-11T20:06:01.0364289Z ##[debug]Evaluating success:
+2026-03-11T20:06:01.0365344Z ##[debug]=> true
+2026-03-11T20:06:01.0366143Z ##[debug]Result: true
+2026-03-11T20:06:01.0367192Z ##[debug]Starting: Checkout Code
+2026-03-11T20:06:01.0467819Z ##[debug]Register post job cleanup for action: actions/checkout@v4
+2026-03-11T20:06:01.0562106Z ##[debug]Loading inputs
+2026-03-11T20:06:01.0577371Z ##[debug]Evaluating: github.repository
+2026-03-11T20:06:01.0578711Z ##[debug]Evaluating Index:
+2026-03-11T20:06:01.0581021Z ##[debug]..Evaluating github:
+2026-03-11T20:06:01.0582344Z ##[debug]..=> Object
+2026-03-11T20:06:01.0589903Z ##[debug]..Evaluating String:
+2026-03-11T20:06:01.0590881Z ##[debug]..=> 'repository'
+2026-03-11T20:06:01.0596116Z ##[debug]=> 'srinithewall/sthi_db'
+2026-03-11T20:06:01.0597925Z ##[debug]Result: 'srinithewall/sthi_db'
+2026-03-11T20:06:01.0602591Z ##[debug]Evaluating: github.token
+2026-03-11T20:06:01.0603269Z ##[debug]Evaluating Index:
+2026-03-11T20:06:01.0603826Z ##[debug]..Evaluating github:
+2026-03-11T20:06:01.0604581Z ##[debug]..=> Object
+2026-03-11T20:06:01.0605110Z ##[debug]..Evaluating String:
+2026-03-11T20:06:01.0605662Z ##[debug]..=> 'token'
+2026-03-11T20:06:01.0606828Z ##[debug]=> '***'
+2026-03-11T20:06:01.0607506Z ##[debug]Result: '***'
+2026-03-11T20:06:01.0629616Z ##[debug]Loading env
+2026-03-11T20:06:01.0713640Z ##[group]Run actions/checkout@v4
+2026-03-11T20:06:01.0714651Z with:
+2026-03-11T20:06:01.0715188Z   repository: srinithewall/sthi_db
+2026-03-11T20:06:01.0716028Z   token: ***
+2026-03-11T20:06:01.0716491Z   ssh-strict: true
+2026-03-11T20:06:01.0716961Z   ssh-user: git
+2026-03-11T20:06:01.0717459Z   persist-credentials: true
+2026-03-11T20:06:01.0717991Z   clean: true
+2026-03-11T20:06:01.0718483Z   sparse-checkout-cone-mode: true
+2026-03-11T20:06:01.0719047Z   fetch-depth: 1
+2026-03-11T20:06:01.0719528Z   fetch-tags: false
+2026-03-11T20:06:01.0720016Z   show-progress: true
+2026-03-11T20:06:01.0720516Z   lfs: false
+2026-03-11T20:06:01.0720970Z   submodules: false
+2026-03-11T20:06:01.0721455Z   set-safe-directory: true
+2026-03-11T20:06:01.0722263Z ##[endgroup]
+2026-03-11T20:06:01.1882237Z ##[debug]GITHUB_WORKSPACE = '/home/runner/work/sthi_db/sthi_db'
+2026-03-11T20:06:01.1884103Z ##[debug]qualified repository = 'srinithewall/sthi_db'
+2026-03-11T20:06:01.1895310Z ##[debug]ref = 'refs/heads/main'
+2026-03-11T20:06:01.1896497Z ##[debug]commit = '87cee5a1eb01c6249a00fcec050b0846cd183e65'
+2026-03-11T20:06:01.1897657Z ##[debug]clean = true
+2026-03-11T20:06:01.1898538Z ##[debug]filter = undefined
+2026-03-11T20:06:01.1899448Z ##[debug]fetch depth = 1
+2026-03-11T20:06:01.1900340Z ##[debug]fetch tags = false
+2026-03-11T20:06:01.1901238Z ##[debug]show progress = true
+2026-03-11T20:06:01.1902131Z ##[debug]lfs = false
+2026-03-11T20:06:01.1902948Z ##[debug]submodules = false
+2026-03-11T20:06:01.1903812Z ##[debug]recursive submodules = false
+2026-03-11T20:06:01.1911384Z ##[debug]GitHub Host URL = 
+2026-03-11T20:06:01.1913182Z ::add-matcher::/home/runner/work/_actions/actions/checkout/v4/dist/problem-matcher.json
+2026-03-11T20:06:01.2065093Z ##[debug]Added matchers: 'checkout-git'. Problem matchers scan action output for known warning or error strings and report these inline.
+2026-03-11T20:06:01.2071514Z Syncing repository: srinithewall/sthi_db
+2026-03-11T20:06:01.2073161Z ::group::Getting Git version info
+2026-03-11T20:06:01.2074905Z ##[group]Getting Git version info
+2026-03-11T20:06:01.2075714Z Working directory is '/home/runner/work/sthi_db/sthi_db'
+2026-03-11T20:06:01.2077401Z ##[debug]Getting git version
+2026-03-11T20:06:01.2078001Z [command]/usr/bin/git version
+2026-03-11T20:06:01.2078544Z git version 2.53.0
+2026-03-11T20:06:01.2104865Z ##[debug]0
+2026-03-11T20:06:01.2106655Z ##[debug]git version 2.53.0
+2026-03-11T20:06:01.2106982Z ##[debug]
+2026-03-11T20:06:01.2111346Z ##[debug]Set git useragent to: git/2.53.0 (github-actions-checkout)
+2026-03-11T20:06:01.2113764Z ::endgroup::
+2026-03-11T20:06:01.2114723Z ##[endgroup]
+2026-03-11T20:06:01.2124239Z ::add-mask::***
+2026-03-11T20:06:01.2143476Z Temporarily overriding HOME='/home/runner/work/_temp/63a4ac37-dca9-4949-8d61-baea64e779af' before making global git config changes
+2026-03-11T20:06:01.2150954Z Adding repository directory to the temporary git global config as a safe directory
+2026-03-11T20:06:01.2165249Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/sthi_db/sthi_db
+2026-03-11T20:06:01.2206369Z ##[debug]0
+2026-03-11T20:06:01.2208657Z ##[debug]
+2026-03-11T20:06:01.2224619Z Deleting the contents of '/home/runner/work/sthi_db/sthi_db'
+2026-03-11T20:06:01.2226188Z ::group::Initializing the repository
+2026-03-11T20:06:01.2226854Z ##[group]Initializing the repository
+2026-03-11T20:06:01.2233188Z [command]/usr/bin/git init /home/runner/work/sthi_db/sthi_db
+2026-03-11T20:06:01.2354645Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-03-11T20:06:01.2356021Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-03-11T20:06:01.2357155Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-03-11T20:06:01.2358011Z hint: call:
+2026-03-11T20:06:01.2358645Z hint:
+2026-03-11T20:06:01.2359463Z hint: 	git config --global init.defaultBranch <name>
+2026-03-11T20:06:01.2360574Z hint:
+2026-03-11T20:06:01.2361308Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-03-11T20:06:01.2362370Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-03-11T20:06:01.2363201Z hint:
+2026-03-11T20:06:01.2363668Z hint: 	git branch -m <name>
+2026-03-11T20:06:01.2364183Z hint:
+2026-03-11T20:06:01.2365182Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-03-11T20:06:01.2366329Z Initialized empty Git repository in /home/runner/work/sthi_db/sthi_db/.git/
+2026-03-11T20:06:01.2368877Z ##[debug]0
+2026-03-11T20:06:01.2370092Z ##[debug]Initialized empty Git repository in /home/runner/work/sthi_db/sthi_db/.git/
+2026-03-11T20:06:01.2370958Z ##[debug]
+2026-03-11T20:06:01.2377568Z [command]/usr/bin/git remote add origin https://github.com/srinithewall/sthi_db
+2026-03-11T20:06:01.2418047Z ##[debug]0
+2026-03-11T20:06:01.2420723Z ##[debug]
+2026-03-11T20:06:01.2422029Z ::endgroup::
+2026-03-11T20:06:01.2422719Z ##[endgroup]
+2026-03-11T20:06:01.2424254Z ::group::Disabling automatic garbage collection
+2026-03-11T20:06:01.2426122Z ##[group]Disabling automatic garbage collection
+2026-03-11T20:06:01.2427814Z [command]/usr/bin/git config --local gc.auto 0
+2026-03-11T20:06:01.2465941Z ##[debug]0
+2026-03-11T20:06:01.2477892Z ##[debug]
+2026-03-11T20:06:01.2478762Z ::endgroup::
+2026-03-11T20:06:01.2479732Z ##[endgroup]
+2026-03-11T20:06:01.2480702Z ::group::Setting up auth
+2026-03-11T20:06:01.2484316Z ##[group]Setting up auth
+2026-03-11T20:06:01.2485525Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-03-11T20:06:01.2517056Z ##[debug]1
+2026-03-11T20:06:01.2520148Z ##[debug]
+2026-03-11T20:06:01.2523025Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-03-11T20:06:01.2895922Z ##[debug]0
+2026-03-11T20:06:01.2896886Z ##[debug]
+2026-03-11T20:06:01.2903487Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-03-11T20:06:01.2932724Z ##[debug]1
+2026-03-11T20:06:01.2933531Z ##[debug]
+2026-03-11T20:06:01.2938087Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-03-11T20:06:01.3181908Z ##[debug]0
+2026-03-11T20:06:01.3182847Z ##[debug]
+2026-03-11T20:06:01.3192113Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-03-11T20:06:01.3220728Z ##[debug]1
+2026-03-11T20:06:01.3221634Z ##[debug]
+2026-03-11T20:06:01.3226137Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-03-11T20:06:01.3479745Z ##[debug]0
+2026-03-11T20:06:01.3480295Z ##[debug]
+2026-03-11T20:06:01.3488352Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-03-11T20:06:01.3515930Z ##[debug]0
+2026-03-11T20:06:01.3516455Z ##[debug]
+2026-03-11T20:06:01.3525560Z ::endgroup::
+2026-03-11T20:06:01.3525906Z ##[endgroup]
+2026-03-11T20:06:01.3526506Z ::group::Fetching the repository
+2026-03-11T20:06:01.3526878Z ##[group]Fetching the repository
+2026-03-11T20:06:01.3535738Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +87cee5a1eb01c6249a00fcec050b0846cd183e65:refs/remotes/origin/main
+2026-03-11T20:06:02.1471876Z From https://github.com/srinithewall/sthi_db
+2026-03-11T20:06:02.1472803Z  * [new ref]         87cee5a1eb01c6249a00fcec050b0846cd183e65 -> origin/main
+2026-03-11T20:06:02.1505703Z ##[debug]0
+2026-03-11T20:06:02.1506714Z ##[debug]
+2026-03-11T20:06:02.1507574Z ::endgroup::
+2026-03-11T20:06:02.1508091Z ##[endgroup]
+2026-03-11T20:06:02.1509048Z ::group::Determining the checkout info
+2026-03-11T20:06:02.1509737Z ##[group]Determining the checkout info
+2026-03-11T20:06:02.1510861Z ::endgroup::
+2026-03-11T20:06:02.1511323Z ##[endgroup]
+2026-03-11T20:06:02.1515926Z [command]/usr/bin/git sparse-checkout disable
+2026-03-11T20:06:02.1555475Z ##[debug]0
+2026-03-11T20:06:02.1556399Z ##[debug]
+2026-03-11T20:06:02.1560689Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-03-11T20:06:02.1587489Z ##[debug]0
+2026-03-11T20:06:02.1588365Z ##[debug]
+2026-03-11T20:06:02.1589178Z ::group::Checking out the ref
+2026-03-11T20:06:02.1589777Z ##[group]Checking out the ref
+2026-03-11T20:06:02.1593286Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-03-11T20:06:02.1947788Z Switched to a new branch 'main'
+2026-03-11T20:06:02.1948804Z branch 'main' set up to track 'origin/main'.
+2026-03-11T20:06:02.1959324Z ##[debug]0
+2026-03-11T20:06:02.1960345Z ##[debug]branch 'main' set up to track 'origin/main'.
+2026-03-11T20:06:02.1961259Z ##[debug]
+2026-03-11T20:06:02.1962273Z ::endgroup::
+2026-03-11T20:06:02.1962890Z ##[endgroup]
+2026-03-11T20:06:02.1998129Z ##[debug]0
+2026-03-11T20:06:02.1999249Z ##[debug]commit 87cee5a1eb01c6249a00fcec050b0846cd183e65
+2026-03-11T20:06:02.2000020Z ##[debug]Author: Codex Assistant <codex@local>
+2026-03-11T20:06:02.2000764Z ##[debug]Date:   Thu Mar 12 01:24:39 2026 +0530
+2026-03-11T20:06:02.2001434Z ##[debug]
+2026-03-11T20:06:02.2002042Z ##[debug]    Commit local unstaged changes before pulling
+2026-03-11T20:06:02.2002779Z ##[debug]
+2026-03-11T20:06:02.2003384Z [command]/usr/bin/git log -1 --format=%H
+2026-03-11T20:06:02.2026889Z 87cee5a1eb01c6249a00fcec050b0846cd183e65
+2026-03-11T20:06:02.2031450Z ##[debug]0
+2026-03-11T20:06:02.2032263Z ##[debug]87cee5a1eb01c6249a00fcec050b0846cd183e65
+2026-03-11T20:06:02.2032677Z ##[debug]
+2026-03-11T20:06:02.2037739Z ##[debug]Unsetting HOME override
+2026-03-11T20:06:02.2046035Z ::remove-matcher owner=checkout-git::
+2026-03-11T20:06:02.2057337Z ##[debug]Removed matchers: 'checkout-git'
+2026-03-11T20:06:02.2115701Z ##[debug]Node Action run completed with exit code 0
+2026-03-11T20:06:02.2150973Z ##[debug]Save intra-action state isPost = true
+2026-03-11T20:06:02.2151532Z ##[debug]Save intra-action state setSafeDirectory = true
+2026-03-11T20:06:02.2172908Z ##[debug]Save intra-action state repositoryPath = /home/runner/work/sthi_db/sthi_db
+2026-03-11T20:06:02.2179748Z ##[debug]Set output commit = 87cee5a1eb01c6249a00fcec050b0846cd183e65
+2026-03-11T20:06:02.2180691Z ##[debug]Set output ref = refs/heads/main
+2026-03-11T20:06:02.2182194Z ##[debug]Finishing: Checkout Code

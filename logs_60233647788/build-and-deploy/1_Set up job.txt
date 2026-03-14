@@ -1,0 +1,68 @@
+﻿2026-03-11T20:05:52.2639263Z ##[debug]Starting: Set up job
+2026-03-11T20:05:52.2640804Z Current runner version: '2.332.0'
+2026-03-11T20:05:52.2665068Z ##[group]Runner Image Provisioner
+2026-03-11T20:05:52.2666234Z Hosted Compute Agent
+2026-03-11T20:05:52.2667287Z Version: 20260213.493
+2026-03-11T20:05:52.2668304Z Commit: 5c115507f6dd24b8de37d8bbe0bb4509d0cc0fa3
+2026-03-11T20:05:52.2669354Z Build Date: 2026-02-13T00:28:41Z
+2026-03-11T20:05:52.2670455Z Worker ID: {5f6573cb-12a9-4b9a-b54d-0750e3ebbf19}
+2026-03-11T20:05:52.2671541Z Azure Region: westus3
+2026-03-11T20:05:52.2672480Z ##[endgroup]
+2026-03-11T20:05:52.2674314Z ##[group]Operating System
+2026-03-11T20:05:52.2675455Z Ubuntu
+2026-03-11T20:05:52.2676285Z 24.04.3
+2026-03-11T20:05:52.2677082Z LTS
+2026-03-11T20:05:52.2677951Z ##[endgroup]
+2026-03-11T20:05:52.2678837Z ##[group]Runner Image
+2026-03-11T20:05:52.2679803Z Image: ***-24.04
+2026-03-11T20:05:52.2680904Z Version: 20260302.42.1
+2026-03-11T20:05:52.2682388Z Included Software: https://github.com/actions/runner-images/blob/***24/20260302.42/images/***/Ubuntu2404-Readme.md
+2026-03-11T20:05:52.2684319Z Image Release: https://github.com/actions/runner-images/releases/tag/***24%2F20260302.42
+2026-03-11T20:05:52.2685789Z ##[endgroup]
+2026-03-11T20:05:52.2687467Z ##[group]GITHUB_TOKEN Permissions
+2026-03-11T20:05:52.2689781Z Contents: read
+2026-03-11T20:05:52.2690725Z Metadata: read
+2026-03-11T20:05:52.2691664Z Packages: read
+2026-03-11T20:05:52.2692575Z ##[endgroup]
+2026-03-11T20:05:52.2695408Z Secret source: Actions
+2026-03-11T20:05:52.2696692Z ##[debug]Primary repository: srinithewall/sthi_db
+2026-03-11T20:05:52.2697877Z Prepare workflow directory
+2026-03-11T20:05:52.2777768Z ##[debug]Creating pipeline directory: '/home/runner/work/sthi_db'
+2026-03-11T20:05:52.2782195Z ##[debug]Creating workspace directory: '/home/runner/work/sthi_db/sthi_db'
+2026-03-11T20:05:52.2784696Z ##[debug]Update context data
+2026-03-11T20:05:52.2789478Z ##[debug]Evaluating job-level environment variables
+2026-03-11T20:05:52.3028295Z ##[debug]Evaluating job container
+2026-03-11T20:05:52.3032215Z ##[debug]Evaluating job service containers
+2026-03-11T20:05:52.3035450Z ##[debug]Evaluating job defaults
+2026-03-11T20:05:52.3066326Z Prepare all required actions
+2026-03-11T20:05:52.3107708Z Getting action download info
+2026-03-11T20:05:52.8411044Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-03-11T20:05:52.8447729Z ##[debug]Copied action archive '/opt/actionarchivecache/actions_checkout/34e114876b0b11c390a56381ad16ebd13914f8d5.tar.gz' to '/home/runner/work/_actions/_temp_8add9f4b-e48f-4a3c-887e-ba5de5a3e98a/122f7b63-1fde-44f3-b78e-afa53002caf6.tar.gz'
+2026-03-11T20:05:52.9986848Z ##[debug]Unwrap 'actions-checkout-34e1148' to '/home/runner/work/_actions/actions/checkout/v4'
+2026-03-11T20:05:53.0101905Z ##[debug]Archive '/home/runner/work/_actions/_temp_8add9f4b-e48f-4a3c-887e-ba5de5a3e98a/122f7b63-1fde-44f3-b78e-afa53002caf6.tar.gz' has been unzipped into '/home/runner/work/_actions/actions/checkout/v4'.
+2026-03-11T20:05:53.0205672Z Download action repository 'actions/setup-java@v4' (SHA:c1e323688fd81a25caa38c78aa6df2d33d3e20d9)
+2026-03-11T20:05:53.8517038Z ##[debug]Download 'https://api.github.com/repos/actions/setup-java/tarball/c1e323688fd81a25caa38c78aa6df2d33d3e20d9' to '/home/runner/work/_actions/_temp_b95d5cd3-623f-44a4-9604-f4402d483c1d/e89f65a6-b343-4875-8119-451e35f4bc7c.tar.gz'
+2026-03-11T20:05:53.9434833Z ##[debug]Unwrap 'actions-setup-java-c1e3236' to '/home/runner/work/_actions/actions/setup-java/v4'
+2026-03-11T20:05:53.9761666Z ##[debug]Archive '/home/runner/work/_actions/_temp_b95d5cd3-623f-44a4-9604-f4402d483c1d/e89f65a6-b343-4875-8119-451e35f4bc7c.tar.gz' has been unzipped into '/home/runner/work/_actions/actions/setup-java/v4'.
+2026-03-11T20:05:53.9823922Z Download action repository 'appleboy/scp-action@v0.1.7' (SHA:917f8b81dfc1ccd331fef9e2d61bdc6c8be94634)
+2026-03-11T20:05:54.6051559Z ##[debug]Download 'https://api.github.com/repos/appleboy/scp-action/tarball/917f8b81dfc1ccd331fef9e2d61bdc6c8be94634' to '/home/runner/work/_actions/_temp_a4706158-4899-47fe-94ad-74fe6889960d/6e361986-41fa-4671-ad3c-1078f3c23d00.tar.gz'
+2026-03-11T20:05:54.6181390Z ##[debug]Unwrap 'appleboy-scp-action-917f8b8' to '/home/runner/work/_actions/appleboy/scp-action/v0.1.7'
+2026-03-11T20:05:54.6207236Z ##[debug]Archive '/home/runner/work/_actions/_temp_a4706158-4899-47fe-94ad-74fe6889960d/6e361986-41fa-4671-ad3c-1078f3c23d00.tar.gz' has been unzipped into '/home/runner/work/_actions/appleboy/scp-action/v0.1.7'.
+2026-03-11T20:05:54.6227894Z Download action repository 'appleboy/ssh-action@v1.0.3' (SHA:029f5b4aeeeb58fdfe1410a5d17f967dacf36262)
+2026-03-11T20:05:55.3335231Z ##[debug]Download 'https://api.github.com/repos/appleboy/ssh-action/tarball/029f5b4aeeeb58fdfe1410a5d17f967dacf36262' to '/home/runner/work/_actions/_temp_d85e4d9b-09a1-457b-a6b6-14a79c2b0653/16334aaf-9bab-48ee-833b-ef54eeb94606.tar.gz'
+2026-03-11T20:05:55.3466496Z ##[debug]Unwrap 'appleboy-ssh-action-029f5b4' to '/home/runner/work/_actions/appleboy/ssh-action/v1.0.3'
+2026-03-11T20:05:55.3484686Z ##[debug]Archive '/home/runner/work/_actions/_temp_d85e4d9b-09a1-457b-a6b6-14a79c2b0653/16334aaf-9bab-48ee-833b-ef54eeb94606.tar.gz' has been unzipped into '/home/runner/work/_actions/appleboy/ssh-action/v1.0.3'.
+2026-03-11T20:05:55.3508235Z ##[debug]action.yml for action: '/home/runner/work/_actions/actions/checkout/v4/action.yml'.
+2026-03-11T20:05:55.4302473Z ##[debug]action.yml for action: '/home/runner/work/_actions/actions/setup-java/v4/action.yml'.
+2026-03-11T20:05:55.4388807Z ##[debug]action.yml for action: '/home/runner/work/_actions/appleboy/scp-action/v0.1.7/action.yml'.
+2026-03-11T20:05:55.4463668Z ##[debug]Dockerfile for action: '/home/runner/work/_actions/appleboy/scp-action/v0.1.7/Dockerfile'.
+2026-03-11T20:05:55.4514745Z ##[debug]action.yml for action: '/home/runner/work/_actions/appleboy/ssh-action/v1.0.3/action.yml'.
+2026-03-11T20:05:55.4548562Z ##[debug]Dockerfile for action: '/home/runner/work/_actions/appleboy/ssh-action/v1.0.3/Dockerfile'.
+2026-03-11T20:05:55.4668424Z ##[debug]Set step '__actions_checkout' display name to: 'Checkout Code'
+2026-03-11T20:05:55.4672451Z ##[debug]Set step '__actions_setup-java' display name to: 'Set up JDK 17'
+2026-03-11T20:05:55.4674584Z ##[debug]Set step '__run' display name to: 'Build with Maven'
+2026-03-11T20:05:55.4676476Z ##[debug]Set step '__appleboy_scp-action' display name to: 'Copy JAR to EC2'
+2026-03-11T20:05:55.4678301Z ##[debug]Set step '__appleboy_ssh-action' display name to: 'Restart Docker Compose Service'
+2026-03-11T20:05:55.4679032Z Complete job name: build-and-deploy
+2026-03-11T20:05:55.4711422Z ##[debug]Collect running processes for tracking orphan processes.
+2026-03-11T20:05:55.4929510Z ##[debug]Finishing: Set up job
