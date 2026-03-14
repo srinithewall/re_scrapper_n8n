@@ -618,4 +618,3 @@ async function main() {
 }
 
 main().catch(err => { log.error(err.message); process.exit(1); });
-// STEP 15: Stability Hook Verification
