@@ -3,8 +3,8 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 /**
- * PropSync Automated Stability Auditor (History Version)
- * Generates UNIQUE reports for every commit and updates a master Index.
+ * PropSync Automated Stability Auditor (Descriptive History Version)
+ * Generates UNIQUE reports named after commit messages and updates a master Index.
  */
 
 const TARGET_FILE = 'scraper-puppeteer-housing.js';
@@ -54,17 +54,21 @@ function loadHistory() {
     return [];
 }
 
+function sanitize(str) {
+    return str.replace(/[^a-z0-9]/gi, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase();
+}
+
 function generateReportHtml(current, previous) {
     const git = current.git;
-    const timestamp = git.date.replace(/[: ]/g, '-');
-    const reportFilename = `audit-${git.hash}-${timestamp}.html`;
+    const sanitizedMsg = sanitize(git.msg).substring(0, 40);
+    const reportFilename = `audit-${sanitizedMsg}-${git.hash}.html`;
     const reportPath = path.join(REPORTS_DIR, reportFilename);
     const prevGit = previous ? previous.git : null;
 
     let html = `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>Audit: ${git.hash}</title>
+    <meta charset="UTF-8"><title>Audit: ${git.msg}</title>
     <style>
         :root { --primary: #2563eb; --success: #22c55e; --danger: #ef4444; --bg: #f8fafc; --text: #1e293b; --gray: #64748b; }
         body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
@@ -89,14 +93,21 @@ function generateReportHtml(current, previous) {
 <body>
     <div class="container">
         <div class="nav"><a href="../index.html">← Back to History Index</a></div>
-        <h1>Audit Report: ${git.hash}</h1>
+        <h1>Stability Audit Report</h1>
         <div class="metadata-grid">
             <div class="metadata-box">
-                <strong>Commit Context</strong><br>
+                <strong>Current State (Active)</strong><br>
                 Date: ${git.date}<br>
-                Msg: ${git.msg}
+                Hash: ${git.hash}<br>
+                Message: ${git.msg}
             </div>
-            ${prevGit ? `<div class="metadata-box previous"><strong>Compared to Previous</strong><br>Hash: ${prevGit.hash}<br>Date: ${prevGit.date}</div>` : '<div></div>'}
+            ${prevGit ? `
+            <div class="metadata-box previous">
+                <strong>Previous State</strong><br>
+                Date: ${prevGit.date}<br>
+                Hash: ${prevGit.hash}<br>
+                Message: ${prevGit.msg}
+            </div>` : '<div></div>'}
         </div>
         <table>
             <thead><tr><th>Step</th><th>Feature</th><th>Prev</th><th>Current</th><th>Change</th></tr></thead>
@@ -121,13 +132,13 @@ function generateReportHtml(current, previous) {
     </div>
 </body></html>`;
     fs.writeFileSync(reportPath, html);
-    console.log(`Unique report generated: ${reportPath}`);
+    console.log(`Report generated: ${reportPath}`);
 }
 
 function updateIndexHtml(history) {
     let listHtml = history.slice().reverse().map(h => {
-        const timestamp = h.git.date.replace(/[: ]/g, '-');
-        const filename = `reports/audit-${h.git.hash}-${timestamp}.html`;
+        const sanitizedMsg = sanitize(h.git.msg).substring(0, 40);
+        const filename = `reports/audit-${sanitizedMsg}-${h.git.hash}.html`;
         return `<tr>
             <td>${h.git.date}</td>
             <td><code>${h.git.hash}</code></td>
@@ -139,7 +150,7 @@ function updateIndexHtml(history) {
     let html = `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>Audit History Index</title>
+    <meta charset="UTF-8"><title>Stability History Index</title>
     <style>
         body { font-family: sans-serif; background: #f8fafc; color: #1e293b; padding: 40px; }
         .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
@@ -152,8 +163,8 @@ function updateIndexHtml(history) {
 </head>
 <body>
     <div class="container">
-        <h1>Historical Stability Audit Index</h1>
-        <p>This index is automatically updated after every commit. Each link represents a unique snapshot of the project stability at that time.</p>
+        <h1>Historical Stability Index</h1>
+        <p>This index is automatically updated after every commit. Each link represents a unique snapshot of the project stability.</p>
         <table>
             <thead><tr><th>Date</th><th>Hash</th><th>Commit Message</th><th>Action</th></tr></thead>
             <tbody>${listHtml}</tbody>
@@ -171,14 +182,13 @@ const history = loadHistory();
 const currentAudit = { git, results: currentResults };
 const lastAudit = history.length > 0 ? history[history.length - 1] : null;
 
-// Always generate report for current state
-generateReportHtml(currentAudit, lastAudit);
-
-// Update history and index only if it's a new commit hash
+// Only push to history and generate report if it's a new commit hash
 if (!lastAudit || lastAudit.git.hash !== git.hash) {
+    generateReportHtml(currentAudit, lastAudit);
     history.push(currentAudit);
     if (history.length > 50) history.shift();
     fs.writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2));
+    updateIndexHtml(history);
+} else {
+    console.log('No new commit detected. Audit skipped.');
 }
-
-updateIndexHtml(history);
