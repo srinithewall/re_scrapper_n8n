@@ -98,7 +98,7 @@ function decodeHtml(str = '') {
 function extractFromNextData(obj, depth = 0, results = []) {
   if (depth > 12 || !obj || typeof obj !== 'object') return results;
 
-  // Detect a project object
+  // Detect a project object (Simplified back to working state)
   const name =
     toText(obj.projectName) ||
     toText(obj.project_name) ||
@@ -106,16 +106,8 @@ function extractFromNextData(obj, depth = 0, results = []) {
     toText(obj.title) ||
     toText(obj.name) ||
     toText(obj.project?.name);
-  const hasProjectSignal = Boolean(
-    obj.listingId ||
-    obj.project?.id ||
-    obj.propertyType ||
-    obj.displayPrice ||
-    obj.coords ||
-    (typeof obj.url === 'string' && /\/projects?\/page\//i.test(obj.url))
-  );
 
-  if (name && typeof name === 'string' && name.length > 3 && hasProjectSignal) {
+  if (name && typeof name === 'string' && name.length > 3) {
     const loc = obj.location || obj.address || {};
     const coords = Array.isArray(obj.coords) ? obj.coords : [];
     const descText =
