@@ -197,10 +197,11 @@ function postFormData(url, fields, files = []) {
       port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
       path: parsedUrl.pathname + parsedUrl.search,
       method: 'POST',
-      headers: {
-        'Content-Type': contentType,
-        'Content-Length': body.length,
+      headers: { 
+        'Content-Type': contentType, 
+        'Content-Length': body.length, 
         'Accept': 'application/json',
+        'X-USER-ID': CONFIG.api.userId || '1'
       },
       timeout: 30000,
     };
@@ -532,7 +533,9 @@ function buildFormFields(property, imageCount = 1, developerId = null) {
   }
 
   if (videos.length > 0) {
-    fields['videoUrl'] = videos[0];
+    fields['videos[0].videoUrl'] = videos[0];
+    fields['videos[0].videoType'] = 'YOUTUBE';
+    fields['videos[0].sortOrder'] = 1;
   }
 
   const safeImageCount = Math.max(1, Math.min(imageCount, CONFIG.maxImagesPerProject));

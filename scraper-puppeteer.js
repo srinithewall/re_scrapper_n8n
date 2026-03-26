@@ -14,6 +14,7 @@ const http  = require('http');
 const https = require('https');
 const { loadRuntimeConfig } = require('./runtime-config');
 const { createDeveloperResolver } = require('./developer-utils');
+const { createApiLookups } = require('./api-lookups');
 const {
   normalizeProjectKey,
   loadDedupeState,
@@ -39,6 +40,73 @@ const log = {
 };
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+// ─────────────────────────────────────────────
+// PRO-LEVEL UTILITIES
+// ─────────────────────────────────────────────
+
+/**
+ * Execute tasks in parallel with a concurrency limit.
+ */
+async function limitConcurrency(tasks, limit = 5) {
+  const results = [];
+  const executing = new Set();
+  for (const task of tasks) {
+    const promise = Promise.resolve().then(() => task());
+    results.push(promise);
+    executing.add(promise);
+    const cleanup = () => executing.delete(promise);
+    promise.then(cleanup).catch(cleanup);
+    if (executing.size >= limit) {
+      await Promise.race(executing);
+    }
+  }
+  return Promise.all(results);
+}
+
+/**
+ * Robust retry mechanism for async functions.
+ */
+async function retry(fn, retries = 3, delay = 1000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (i === retries - 1) throw err;
+      log.warn(`  [RETRY ${i + 1}/${retries}] Operation failed: ${err.message}. Retrying in ${delay}ms...`);
+      await new Promise(r => setTimeout(r, delay * Math.pow(2, i))); // Exp backoff
+    }
+  }
+}
+
+const developerCache = new Map();
+
+// ─────────────────────────────────────────────
+// NETWORK & ASSETS
+// ─────────────────────────────────────────────
+function checkImageSize(urlStr) {
+  return new Promise((resolve) => {
+    if (!urlStr || !urlStr.startsWith('http')) return resolve(0);
+    const lib = urlStr.startsWith('https') ? https : http;
+    try {
+      const parsed = new URL(urlStr);
+      const reqHead = lib.request({ method: 'HEAD', hostname: parsed.hostname, path: parsed.pathname + parsed.search, timeout: 5000 }, resHead => {
+         const len = parseInt(resHead.headers['content-length'] || '0', 10);
+         if (len > 30720) return resolve(len);
+         const reqGet = lib.get(urlStr, { headers: { 'User-Agent': 'Mozilla/5.0', 'Range': 'bytes=0-31000' }, timeout: 5000 }, resGet => {
+            let bytes = 0;
+            resGet.on('data', c => { bytes += c.length; if (bytes > 31000) { reqGet.destroy(); resolve(bytes); } });
+            resGet.on('end', () => resolve(bytes));
+         });
+         reqGet.on('error', () => resolve(0));
+         reqGet.end();
+      });
+      reqHead.on('error', () => resolve(0));
+      reqHead.end();
+    } catch(e) { resolve(0); }
+  });
+}
+
 
 // Download image from URL → returns Buffer
 function downloadImage(url) {
@@ -111,6 +179,18 @@ function parsePrice(text = '') {
   if (min > max) [min, max] = [max, min];
   if (min === max) max = +(min * 1.15).toFixed(2);
   return { priceMin: min || 0.85, priceMax: max || 1.20 };
+}
+
+function parsePossessionDate(raw) {
+  if (!raw) return null;
+  const m = raw.match(/([a-z]+)[,\s]+(\d{4})/i);
+  if (m) {
+    const monthMap = { jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06', jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12' };
+    const month = monthMap[m[1].toLowerCase().slice(0, 3)] || '01';
+    return `${m[2]}-${month}-01`;
+  }
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
+  return null;
 }
 
 function getZone(area = '') {
@@ -259,6 +339,17 @@ async function extractFromPage(page, pageNum, debugMode) {
         const reraM = text.match(/(?:RERA\s*(?:No\.?|Number|#|:)?\s*)([A-Z0-9/]{8,40})/i);
         const reraId = reraM ? reraM[1].trim() : '';
 
+        // ── Amenities ──
+        const amenitiesExtracted = [];
+        const amEl = card.querySelector('[class*="amenities"], [class*="features"]');
+        if (amEl) {
+          amEl.querySelectorAll('li, span, div').forEach(el => {
+            const t = el.innerText?.trim();
+            if (t && t.length > 2 && t.length < 30) amenitiesExtracted.push(t);
+          });
+        }
+
+
         // ── Developer ──
         const devEl = card.querySelector([
           '[class*="developerName"]', '[class*="developer"]',
@@ -266,6 +357,20 @@ async function extractFromPage(page, pageNum, debugMode) {
           '[class*="agentName"]',
         ].join(','));
         const developer = devEl?.innerText?.trim().split('\n')[0] || '';
+
+        // ── Possession ──
+        let possessionDate = '';
+        const possEl = Array.from(card.querySelectorAll('div, span, p')).find(el => /possession/i.test(el.innerText));
+        if (possEl) {
+          const val = possEl.innerText.match(/(?:by|starts|from)?\s*([a-z]+\s*[\d]{4})/i);
+          if (val) possessionDate = val[1].trim();
+        }
+
+        // ── Address Line ──
+        const addrEl = card.querySelector([
+          '[class*="address"]', '[class*="subTitle"]', '[class*="locality"]'
+        ].join(','));
+        const addressLine = addrEl?.innerText?.trim() || '';
 
         // ── Media (Images & Videos) ──
         const imageSet = new Set();
@@ -300,7 +405,8 @@ async function extractFromPage(page, pageNum, debugMode) {
           bhks: [...bhkSet].filter(b => b >= 1 && b <= 6).sort(),
           sizeSqft, priceTexts, 
           imageUrls: [...imageSet].slice(0, 7),
-          videoUrls: [...videoSet].slice(0, 3)
+          videoUrls: [...videoSet].slice(0, 3),
+          possessionDate, addressLine, amenitiesExtracted
         });
       } catch (_) {}
     });
@@ -358,29 +464,40 @@ function normalize(raw) {
     sourceType: CONFIG.sourceType,
     sourceName: CONFIG.source,
     sourceUpdatedAt: new Date().toISOString(),
+    possessionDate:  parsePossessionDate(raw.possessionDate),
     imageUrls: (raw.imageUrls || []).slice(0, CONFIG.maxImagesPerProject),
     videoUrls: (raw.videoUrls || []),
     location: {
       zone:      getZone(areaClean),
       area:      areaClean,
+      addressLine: raw.addressLine || areaClean,
       city:      CONFIG.api.defaultCity,
       latitude:  12.9698,
       longitude: 77.7500,
     },
     unitTypes,
     amenityIds: CONFIG.api.amenityIds,
+    amenitiesExtracted: raw.amenitiesExtracted || []
   };
 }
 
 // ─────────────────────────────────────────────
-// MAIN SCRAPE
+// MAIN SCRAPER SEQUENCE
 // ─────────────────────────────────────────────
-async function scrape(debugMode) {
+async function main() {
+  const args = process.argv.slice(2);
+  const dryRun = args.includes('--dry-run');
+  const debugMode = args.includes('--debug');
+
   let puppeteer;
   try { puppeteer = require('puppeteer'); }
   catch (_) { log.error('Run: npm install puppeteer'); process.exit(1); }
 
-  log.step('━━━ PHASE 1: Scraping 99acres.com — Bengaluru ━━━');
+  log.step('PHASE 1: Scraping 99acres.com — Bengaluru');
+
+  const dedupeState = loadDedupeState(CONFIG.dedupeStateFile);
+  const developerResolver = await createDeveloperResolver(CONFIG, log);
+  const apiLookups = await createApiLookups(CONFIG, developerResolver, log);
 
   const browser = await puppeteer.launch({
     headless: 'new',
@@ -409,43 +526,49 @@ async function scrape(debugMode) {
       else req.continue();
     });
 
+    // ─────────────────────────────────────────────
+    // STEP 8: Process Page-by-Page
+    // ─────────────────────────────────────────────
+    const reports = [];
     for (let pageNum = 1; pageNum <= CONFIG.maxPages; pageNum++) {
-      const url = pageNum === 1
-        ? CONFIG.scrapeUrl
-        : CONFIG.scrapeUrl + `&page_no=${pageNum}`;
-
+      const url = pageNum === 1 ? CONFIG.scrapeUrl : CONFIG.scrapeUrl + `&page_no=${pageNum}`;
       log.info(`Loading page ${pageNum}: ${url}`);
-      try {
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
-      } catch (e) { log.warn(`Load note: ${e.message.slice(0, 60)}`); }
+      try { await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 }); } catch (e) {}
 
       const { results, diag } = await extractFromPage(page, pageNum, debugMode);
-      log.data(`  Title: ${diag.title}`);
-      log.data(`  GROUPED_PROJECT_TUPLEs found: ${diag.groupedTuples}`);
       log.data(`  Raw extracted: ${results.length}`);
 
-      const seen = new Set(allProperties.map(p => p.projectName));
-      for (const raw of results) {
-        if (!raw.name || seen.has(raw.name)) continue;
-        seen.add(raw.name);
-        allProperties.push(normalize(raw));
+      if (results.length > 0) {
+        log.info(`  Processing and submitting ${results.length} projects from Page ${pageNum}...`);
+        for (const raw of results) {
+          const prop = normalize(raw);
+          const res = await processAndSubmit(prop, dryRun, apiLookups, dedupeState);
+          reports.push(res);
+        }
       }
-      log.success(`Page ${pageNum}: total so far: ${allProperties.length}`);
-      if (pageNum < CONFIG.maxPages) await sleep(3000);
+      if (reports.length >= (CONFIG.limit || 10)) break;
+      if (pageNum < CONFIG.maxPages) await sleep(3000 + Math.random() * 3000);
     }
-  } finally {
-    await browser.close();
-  }
 
-  const limited = CONFIG.limit ? allProperties.slice(0, CONFIG.limit) : allProperties;
-  log.success(`\nScraping done. Using top ${limited.length} of ${allProperties.length} properties.`);
-  return limited;
+    // Summary
+    const successCount = reports.filter(r => r.success).length;
+    const skipCount = reports.filter(r => !r.success).length;
+    log.success(`Total processed: ${reports.length} (Success: ${successCount}, Skipped: ${skipCount})`);
+    
+    saveDedupeState(CONFIG.dedupeStateFile, dedupeState);
+    log.step('━━━ SUMMARY ━━━');
+    log.success(`Success : ${successCount}`);
+    log.info(`Skipped : ${skipCount}`);
+
+  } catch (err) { log.error(`  Scrape failed: ${err.message}`); }
+  finally { await browser.close(); }
 }
 
 // ─────────────────────────────────────────────
-// BUILD FORM FIELDS
+// SUPPORTING FUNCTIONS
 // ─────────────────────────────────────────────
-function buildFormFields(p, imageCount = 1, developerId = null) {
+
+function buildFormFields(p, images = [], imageSizes = [], developerId = null, amenityIds = []) {
   const cfg = CONFIG.api;
   const loc = p.location;
   const f = {};
@@ -461,11 +584,16 @@ function buildFormFields(p, imageCount = 1, developerId = null) {
   f['constructionStatusid'] = cfg.constructionStatusid;
   f['developerId']          = developerId || cfg.fallbackDeveloperId || cfg.developerId;
   f['projectTypeId']        = cfg.projectTypeId;
+  f['isVerified']           = false;
   f['location.zone']        = loc.zone;
-  f['location.area']        = loc.area;
+  f['location.area']         = loc.area;
   f['location.city']        = loc.city;
-  f['location.latitude']    = loc.latitude;
-  f['location.longitude']   = loc.longitude;
+  f['location.addressLine']  = loc.addressLine || loc.area;
+  f['location.latitude']     = loc.latitude;
+  f['location.longitude']    = loc.longitude;
+  
+  if (p.possessionDate) f['possessionDate'] = p.possessionDate;
+
   p.unitTypes.forEach((u, i) => {
     f[`unitTypes[${i}].unitTypeId`] = u.unitTypeId;
     f[`unitTypes[${i}].sizeSqft`]   = u.sizeSqft;
@@ -474,37 +602,112 @@ function buildFormFields(p, imageCount = 1, developerId = null) {
     f[`unitTypes[${i}].priceUnit`]  = u.priceUnit;
   });
 
-  cfg.amenityIds.forEach((id, i) => { f[`amenityIds[${i}]`] = id; });
+  (amenityIds.length > 0 ? amenityIds : cfg.amenityIds).forEach((id, i) => { f[`amenityIds[${i}]`] = id; });
 
   if (p.videoUrls && p.videoUrls.length > 0) {
-    f['videoUrl'] = p.videoUrls[0];
+    f['videos[0].videoUrl'] = p.videoUrls[0];
+    f['videos[0].videoType'] = 'YOUTUBE';
+    f['videos[0].sortOrder'] = 1;
   }
 
-  const safeImageCount = Math.max(1, Math.min(imageCount, CONFIG.maxImagesPerProject));
-  for (let i = 0; i < safeImageCount; i++) {
+  for (let i = 0; i < images.length; i++) {
     f[`images[${i}].sortOrder`] = i + 1;
+    f[`images[${i}].imageType`] = 'GALLERY';
+    f[`images[${i}].fileSize`]  = imageSizes[i] || 0;
   }
   return f;
+}
+
+/**
+ * Encapsulated per-project logic: Dedupe -> Filter -> Resolve -> Submit
+ */
+async function processAndSubmit(prop, dryRun, apiLookups, dedupeState) {
+  log.info(`  Processing "${prop.projectName}"...`);
+
+  const dedupeKey = normalizeProjectKey(prop.projectName);
+  if (dedupeState.projects[dedupeKey]) {
+    log.warn(`    [SKIP] Local dedupe (Seen: ${dedupeState.projects[dedupeKey].firstSeenAt})`);
+    return { success: false, projectName: prop.projectName, reason: 'Duplicate' };
+  }
+
+  // Location Quality Check
+  if (prop.location.latitude === 12.9698 && prop.location.longitude === 77.7500) {
+    log.warn(`    [SKIP] Missing/Hardcoded location data.`);
+    return { success: false, projectName: prop.projectName, reason: 'Invalid Location' };
+  }
+
+  // Parallel Image Verification
+  const checkTasks = prop.imageUrls.map(url => () => checkImageSize(url));
+  const sizes = await limitConcurrency(checkTasks, 10);
+  const validImageUrls = prop.imageUrls.filter((url, i) => sizes[i] > 30720);
+  const validImageSizes = sizes.filter(s => s > 30720);
+
+  if (validImageUrls.length === 0) {
+    log.warn(`    [SKIP] 0 images >30kb.`);
+    return { success: false, projectName: prop.projectName, reason: 'Low Quality' };
+  }
+
+  // Parallel Downloads
+  const downloadTasks = validImageUrls.slice(0, 10).map(url => () => downloadImage(url));
+  const imageBuffers = await limitConcurrency(downloadTasks, 5);
+  const finalBuffers = imageBuffers.filter(b => b !== null);
+
+  if (finalBuffers.length === 0) {
+    return { success: false, projectName: prop.projectName, reason: 'Download Failed' };
+  }
+
+  const devName = prop.developerName || 'Unknown';
+  let devId = developerCache.get(devName);
+  if (!devId) {
+    devId = await apiLookups.resolveDeveloper(devName);
+    developerCache.set(devName, devId);
+  }
+  const amenityIds = await apiLookups.resolveAmenities(prop.amenitiesExtracted || []);
+
+  const fields = buildFormFields(prop, finalBuffers, validImageSizes, devId, amenityIds);
+  const files = finalBuffers.map((buf, i) => ({
+    fieldName: `images[${i}].file`,
+    fileName: `property-${i}.jpg`,
+    mimeType: 'image/jpeg',
+    buffer: buf
+  }));
+
+  const maskedPayload = { ...fields };
+  if (maskedPayload.reraNumber) maskedPayload.reraNumber = '***MASKED***';
+  log.data(`    Payload (Masked): ${JSON.stringify(maskedPayload).slice(0, 100)}...`);
+
+  if (dryRun) {
+    log.success(`    [DRY-RUN] Found "${prop.projectName}"`);
+    return { success: true, projectName: prop.projectName, dryRun: true };
+  }
+
+  try {
+    const result = await retry(() => postFormData(CONFIG.apiUrl, fields, files), 3);
+    if (result.statusCode >= 200 && result.statusCode < 300) {
+      log.success(`    [OK] Submitted successfully`);
+      markSeenProject(dedupeState, prop.projectName, { source: prop.sourceName });
+      return { success: true, projectName: prop.projectName, statusCode: result.statusCode };
+    } else {
+      log.error(`    [FAIL] API Error ${result.statusCode}`);
+      return { success: false, projectName: prop.projectName, reason: `API ${result.statusCode}` };
+    }
+  } catch (err) {
+    log.error(`    [FAIL] Network error: ${err.message}`);
+    return { success: false, projectName: prop.projectName, reason: 'Network Error' };
+  }
 }
 
 function buildMultipart(fields, files = []) {
   const boundary = '----FormBoundary' + Math.random().toString(16).slice(2);
   const parts = [];
   const CRLF = Buffer.from('\r\n');
-
   for (const [k, v] of Object.entries(fields)) {
-    parts.push(Buffer.from(
-      `--${boundary}\r\nContent-Disposition: form-data; name="${k}"\r\n\r\n${String(v)}\r\n`
-    ));
+    parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${k}"\r\n\r\n${String(v)}\r\n`));
   }
-
   for (const file of files) {
-    const header = Buffer.from(
-      `--${boundary}\r\nContent-Disposition: form-data; name="${file.fieldName}"; filename="${file.fileName}"\r\nContent-Type: ${file.mimeType}\r\n\r\n`
-    );
+    const header = Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${file.fieldName}"; filename="${file.fileName}"\r\nContent-Type: ${file.mimeType}\r\n\r\n`);
     parts.push(Buffer.concat([header, file.buffer, CRLF]));
   }
-
   parts.push(Buffer.from(`--${boundary}--\r\n`));
   const body = Buffer.concat(parts);
   return { body, contentType: `multipart/form-data; boundary=${boundary}` };
@@ -514,13 +717,18 @@ function postFormData(url, fields, files = []) {
   return new Promise((resolve, reject) => {
     const { body, contentType } = buildMultipart(fields, files);
     const pu = new URL(url);
-    const lib = pu.protocol === 'https:' ? https : http;
+    const lib = pu.protocol === 'https:' ? require('https') : require('http');
     const req = lib.request({
-      hostname: pu.hostname, port: pu.port,
+      hostname: pu.hostname, port: pu.port || (pu.protocol === 'https:' ? 443 : 80),
       path: pu.pathname + pu.search, method: 'POST',
-      headers: { 'Content-Type': contentType, 'Content-Length': body.length, 'Accept': 'application/json' },
-      timeout: 30000,
-    }, res => {
+      headers: { 
+        'Content-Type': contentType, 
+        'Content-Length': body.length, 
+        'Accept': 'application/json',
+        'X-USER-ID': CONFIG.api.userId || '1'
+    },
+    timeout: 30000,
+  }, res => {
       let d = '';
       res.on('data', c => d += c);
       res.on('end', () => resolve({ statusCode: res.statusCode, body: d }));
@@ -530,178 +738,6 @@ function postFormData(url, fields, files = []) {
     req.write(body);
     req.end();
   });
-}
-
-// ─────────────────────────────────────────────
-// MAIN
-// ─────────────────────────────────────────────
-async function main() {
-  const args      = process.argv.slice(2);
-  const dryRun    = args.includes('--dry-run');
-  const debugMode = args.includes('--debug');
-
-  console.log('\n\x1b[1m\x1b[33m  PropSync — 99acres.com → RE Projects API\x1b[0m\n');
-
-  const lookback = CONFIG.window.lookbackDays != null
-    ? `${CONFIG.window.lookbackDays} days`
-    : `${CONFIG.window.lookbackHours} hours`;
-  log.info(`Mode: ${CONFIG.window.mode} | Lookback: ${lookback} | Since: ${CONFIG.window.sinceIso}`);
-
-  const properties = await scrape(debugMode);
-
-  if (properties.length === 0) {
-    log.error('No properties scraped. Run with --debug to inspect HTML.');
-    process.exit(1);
-  }
-
-  fs.writeFileSync(CONFIG.outputFile, JSON.stringify(properties, null, 2));
-
-  log.step('━━━ PHASE 2: Submitting to API ━━━');
-  log.info(`Endpoint : ${CONFIG.apiUrl}`);
-  log.info(`Count    : ${properties.length} properties\n`);
-
-  const results = { success: [], failed: [], skipped: [] };
-  const dedupeState = loadDedupeState(CONFIG.dedupeStateFile);
-  const runSeen = new Set();
-  let remoteLookupEnabled = Boolean(CONFIG.projectExistsUrlTemplate);
-  let remoteLookupFailures = 0;
-  const developerResolver = await createDeveloperResolver(CONFIG, log);
-
-  for (let i = 0; i < properties.length; i++) {
-    const prop = properties[i];
-    prop.sourceType = prop.sourceType || CONFIG.sourceType;
-    prop.sourceName = prop.sourceName || CONFIG.source;
-    prop.websiteUrl = prop.websiteUrl || CONFIG.scrapeUrl;
-    prop.sourceUpdatedAt = prop.sourceUpdatedAt || new Date().toISOString();
-
-    const dedupeKey = normalizeProjectKey(prop.projectName);
-    if (!dedupeKey) {
-      results.skipped.push({ property: prop.projectName, reason: 'invalid-name' });
-      continue;
-    }
-    if (runSeen.has(dedupeKey)) {
-      results.skipped.push({ property: prop.projectName, reason: 'duplicate-in-run' });
-      continue;
-    }
-    runSeen.add(dedupeKey);
-
-    if (hasSeenProject(dedupeState, prop.projectName)) {
-      log.warn(`Skipping already-submitted project: ${prop.projectName}`);
-      results.skipped.push({ property: prop.projectName, reason: 'local-dedupe' });
-      continue;
-    }
-
-    if (remoteLookupEnabled) {
-      try {
-        const lookup = await checkProjectExistsInDb(
-          CONFIG.projectExistsUrlTemplate,
-          CONFIG.projectExistsMethod,
-          prop.projectName
-        );
-        if (lookup.checked && lookup.exists) {
-          log.warn(`Skipping existing DB project: ${prop.projectName}`);
-          markSeenProject(dedupeState, prop.projectName, {
-            source: prop.sourceName,
-            sourceType: prop.sourceType,
-            updatedAt: prop.sourceUpdatedAt,
-            projectName: prop.projectName,
-          });
-          results.skipped.push({ property: prop.projectName, reason: 'exists-in-db' });
-          continue;
-        }
-      } catch (err) {
-        remoteLookupFailures++;
-        log.warn(`DB duplicate-check failed: ${err.message}`);
-        if (remoteLookupFailures >= 2) {
-          remoteLookupEnabled = false;
-          log.warn('Disabling DB duplicate-check for this run (too many failures).');
-        }
-      }
-    }
-
-    const imageUrls = [...new Set((prop.imageUrls || []).filter((u) => /^https?:\/\//i.test(u)))]
-      .slice(0, CONFIG.maxImagesPerProject);
-
-    let files = [];
-    if (!dryRun) {
-      for (let imgIndex = 0; imgIndex < imageUrls.length; imgIndex++) {
-        const url = imageUrls[imgIndex];
-        const imgBuffer = await downloadImage(url);
-        if (!imgBuffer) continue;
-        const ext = url.includes('.png') ? 'png' : url.includes('.webp') ? 'webp' : 'jpg';
-        files.push({
-          fieldName: `images[${files.length}].file`,
-          fileName: `property-${i}-${files.length}.${ext}`,
-          mimeType: mimeType(url),
-          buffer: imgBuffer,
-        });
-      }
-      if (files.length === 0) {
-        files = getPlaceholderImage();
-      }
-    }
-
-    const imageCount = dryRun ? Math.max(1, imageUrls.length || 1) : Math.max(1, files.length);
-    const developerResolution = developerResolver.resolve(prop.developerName);
-    const fields = buildFormFields(prop, imageCount, developerResolution.developerId);
-
-    log.info(`[${i+1}/${properties.length}] "${prop.projectName}"`);
-    log.data(`  Source    : ${prop.sourceName}`);
-    log.data(`  Developer : ${developerResolution.developerName || 'fallback'} -> ${developerResolution.developerId} (${developerResolution.matchedBy})`);
-    log.data(`  Images    : ${imageUrls.length} URLs (max ${CONFIG.maxImagesPerProject})`);
-    console.log('\x1b[90m' + '-'.repeat(62) + '\x1b[0m');
-    Object.entries(fields).forEach(([k, v]) =>
-      console.log(`  \x1b[33m${k.padEnd(35)}\x1b[0m \x1b[97m${v}\x1b[0m`)
-    );
-    console.log('\x1b[90m' + '-'.repeat(62) + '\x1b[0m\n');
-
-    if (dryRun) {
-      results.success.push({ property: prop.projectName, status: 'dry-run' });
-      continue;
-    }
-
-    try {
-      const { statusCode, body } = await postFormData(CONFIG.apiUrl, fields, files);
-      if (statusCode >= 200 && statusCode < 300) {
-        log.success(`  OK Submitted (HTTP ${statusCode})`);
-        results.success.push({ property: prop.projectName, statusCode, response: body });
-        markSeenProject(dedupeState, prop.projectName, {
-          source: prop.sourceName,
-          sourceType: prop.sourceType,
-          updatedAt: prop.sourceUpdatedAt,
-          projectName: prop.projectName,
-        });
-      } else if (isLikelyDuplicateError(statusCode, body)) {
-        log.warn(`  Skipped duplicate (HTTP ${statusCode})`);
-        results.skipped.push({ property: prop.projectName, reason: 'duplicate-response', statusCode });
-        markSeenProject(dedupeState, prop.projectName, {
-          source: prop.sourceName,
-          sourceType: prop.sourceType,
-          updatedAt: prop.sourceUpdatedAt,
-          projectName: prop.projectName,
-        });
-      } else {
-        log.error(`  FAIL HTTP ${statusCode}`);
-        results.failed.push({ property: prop.projectName, statusCode, error: body });
-      }
-    } catch (err) {
-      log.error(`  FAIL Network error: ${err.message}`);
-      results.failed.push({ property: prop.projectName, error: err.message });
-    }
-
-    await sleep(500);
-  }
-
-  if (!dryRun) {
-    saveDedupeState(CONFIG.dedupeStateFile, dedupeState);
-    log.info(`Dedupe state saved -> ${CONFIG.dedupeStateFile}`);
-  }
-  log.step('━━━ SUMMARY ━━━');
-  log.success(`Success : ${results.success.length}`);
-  log.info(`Skipped : ${results.skipped.length}`);
-  if (results.failed.length) log.error(`Failed  : ${results.failed.length}`);
-  fs.writeFileSync(CONFIG.reportFile, JSON.stringify(results, null, 2));
-  log.info(`Report  → ${CONFIG.reportFile}`);
 }
 
 main().catch(e => { log.error(e.message); process.exit(1); });

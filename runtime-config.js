@@ -95,8 +95,10 @@ function loadRuntimeConfig(sourceName, args = process.argv.slice(2)) {
   const dedupeFileName = resolveOverride(args, 'dedupe-file', 'SCRAPER_DEDUPE_FILE') || global.dedupeStateFile || 'submitted_projects_cache.json';
   const projectExistsUrlTemplate = resolveOverride(args, 'project-exists-url', 'SCRAPER_PROJECT_EXISTS_URL') || global.projectExistsUrlTemplate || '';
 
+  const overrideUrl = resolveOverride(args, 'url', 'SCRAPER_URL');
+
   return {
-    scrapeUrl: sourceConfig.scrapeUrl,
+    scrapeUrl: overrideUrl || sourceConfig.scrapeUrl,
     maxPages: parsePositiveInt(sourceConfig.maxPages, `${sourceName}.maxPages`) || 1,
     limit: overrideLimit ?? parsePositiveInt(sourceConfig.limit, `${sourceName}.limit`),
     requestDelay: parsePositiveInt(sourceConfig.requestDelay, `${sourceName}.requestDelay`) || 1500,

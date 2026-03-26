@@ -120,6 +120,9 @@ function buildRunnerArgs(body) {
   const args = [];
   args.push(sources.length > 1 ? `--sources=${sources.join(',')}` : `--source=${sources[0]}`);
   args.push(`--mode=${mode}`);
+  
+  if (body.task) pushArg(args, 'task', body.task);
+  if (body.data) pushArg(args, 'data', typeof body.data === 'string' ? body.data : JSON.stringify(body.data));
 
   if (body.dryRun === true || body.dryRun === 'true') args.push('--dry-run');
   if (body.scrapeOnly === true || body.scrapeOnly === 'true') args.push('--scrape-only');

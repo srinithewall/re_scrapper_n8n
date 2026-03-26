@@ -1,0 +1,19 @@
+{
+  "projectName": "Godrej Splendour",
+  "websiteUrl": "https://housing.com/in/buy/projects/page/275306-godrej-splendour-by-godrej-properties-in-whitefield",
+  "description": "Premium Residential Project in Whitefield",
+  "developerName": "Godrej Properties",
+  "imageUrls": [
+    "https://is1-2.housingcdn.com/4f2250e8/f8e239207e32a63273e9e3e3e3e3e3e3/v0/large/godrej_splendour-whitefield-bengaluru-godrej_properties.jpg"
+  ],
+  "amenitiesExtracted": ["Swimming Pool", "Gym", "Clubhouse"],
+  "location": {
+    "area": "Whitefield",
+    "city": "Bengaluru",
+    "latitude": 12.9698,
+    "longitude": 77.7500
+  },
+  "unitTypes": [
+    { "unitTypeId": 2, "sizeSqft": 1200, "priceMin": 0.85, "priceMax": 1.20, "priceUnit": "Cr" }
+  ]
+}

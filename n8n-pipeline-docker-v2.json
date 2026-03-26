@@ -1,0 +1,242 @@
+{
+  "name": "RE Scraper Modular Pipeline (Docker/Linux)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "trigger-scraper",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd /home/node/project && node scraper-modular.js --source=housing --task=discover --limit=10"
+      },
+      "id": "2",
+      "name": "Discover Projects",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  return JSON.parse($json.stdout);\n} catch (e) {\n  throw new Error('Failed to parse discovery output: ' + $json.stdout);\n}"
+      },
+      "id": "3",
+      "name": "Parse Discovery",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "4",
+      "name": "Split In Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst path = require('path');\nconst dedupeFile = '/home/node/project/submitted_projects_cache.json';\n\nlet state = { projects: {} };\nif (fs.existsSync(dedupeFile)) {\n  state = JSON.parse(fs.readFileSync(dedupeFile, 'utf8'));\n}\n\nconst project = $json;\nconst key = project.projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');\n\nif (state.projects[key]) {\n  return { ...project, isDuplicate: true };\n}\nreturn { ...project, isDuplicate: false };"
+      },
+      "id": "5",
+      "name": "Dedupe Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.isDuplicate}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "6",
+      "name": "If Duplicate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "command": "=\"cd /home/node/project && node scraper-modular.js --source=housing --task=enrich --data='\" + JSON.stringify($json).replace(/'/g, \"\\'\") + \"'\""
+      },
+      "id": "7",
+      "name": "Enrich Project",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return JSON.parse($json.stdout);"
+      },
+      "id": "8",
+      "name": "Parse Enriched",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://43.204.221.192:8880/api/re/projects",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "projectName",
+              "value": "={{$json.formFields.projectName}}"
+            },
+            {
+              "name": "description",
+              "value": "={{$json.formFields.description}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9",
+      "name": "Submit to API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1700,
+        300
+      ],
+      "notesInFlow": true,
+      "notes": "Note: Use binary nodes if images are required, otherwise map all formFields here."
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Discover Projects",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discover Projects": {
+      "main": [
+        [
+          {
+            "node": "Parse Discovery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Discovery": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split In Batches": {
+      "main": [
+        [
+          {
+            "node": "Dedupe Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dedupe Check": {
+      "main": [
+        [
+          {
+            "node": "If Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Duplicate": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Enrich Project",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich Project": {
+      "main": [
+        [
+          {
+            "node": "Parse Enriched",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Enriched": {
+      "main": [
+        [
+          {
+            "node": "Submit to API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
