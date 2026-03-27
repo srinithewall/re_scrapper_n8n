@@ -11,9 +11,16 @@ services:
       - WEBHOOK_URL=http://43.204.221.192:5678/
       - N8N_PORT=5678
       - N8N_SECURE_COOKIE=false
-    volumes:
-      - n8n_data:/home/node/.n8n
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_HOST=postgres_db
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_USER=n8nuser
+      - DB_POSTGRESDB_PASSWORD=n8npassword # UPDATE WITH YOUR ACTUAL PASSWORD
+    external_links:
+      - postgres_db:postgres_db
     networks:
+      - app_network
       - scraper_network
 
   scraper:
@@ -32,6 +39,8 @@ services:
 networks:
   scraper_network:
     driver: bridge
+  app_network:
+    external: true
 
 volumes:
   n8n_data:
