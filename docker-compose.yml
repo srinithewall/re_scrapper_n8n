@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=43.204.221.192
+      - WEBHOOK_URL=http://43.204.221.192:5678/
+      - N8N_PORT=5678
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - scraper_network
+
+  scraper:
+    build: .
+    restart: always
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+    volumes:
+      - ./debug:/app/debug
+      - ./submitted_projects_cache.json:/app/submitted_projects_cache.json
+    networks:
+      - scraper_network
+
+networks:
+  scraper_network:
+    driver: bridge
+
+volumes:
+  n8n_data:
