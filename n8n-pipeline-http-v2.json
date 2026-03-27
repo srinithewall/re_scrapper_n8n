@@ -20,7 +20,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://localhost:3001/run",
+        "url": "http://scraper-server:3001/run",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "{\n  \"source\": \"housing\",\n  \"task\": \"discover\",\n  \"limit\": 10\n}",
@@ -98,7 +98,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://localhost:3001/run",
+        "url": "http://scraper-server:3001/run",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"source\": \"housing\",\n  \"task\": \"enrich\",\n  \"data\": {{$json}}\n}",
