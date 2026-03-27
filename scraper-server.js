@@ -1,7 +1,7 @@
 const http = require('http');
 const { runFromArgs } = require('./n8n-runner');
 
-const PORT = Number.parseInt(process.env.PORT || process.env.SCRAPER_PORT || '3001', 10);
+const PORT = Number.parseInt(process.env.PORT || process.env.SCRAPER_PORT || '3002', 10);
 const HOST = process.env.HOST || process.env.SCRAPER_HOST || '0.0.0.0';
 const TRIGGER_TOKEN = (process.env.SCRAPER_TRIGGER_TOKEN || '').trim();
 const DEFAULT_SOURCE = (process.env.SCRAPER_DEFAULT_SOURCE || '99acres').trim();
