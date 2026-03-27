@@ -1,0 +1,134 @@
+{
+  "name": "RE Scraper Webhook Trigger",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "re-scraper-trigger",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        300
+      ],
+      "webhookId": "re-scraper-trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body ?? $json;\nconst allowedSources = ['99acres', 'housing', 'housing,99acres'];\nconst allowedModes = ['daily', 'bootstrap'];\n\nconst source = String(body.source ?? body.sources ?? '99acres').trim();\nconst mode = String(body.mode ?? 'daily').trim();\nconst dryRun = body.dryRun === true || body.dryRun === 'true';\n\nif (!allowedSources.includes(source)) {\n  throw new Error(`Unsupported source. Use one of: ${allowedSources.join(', ')}`);\n}\n\nif (!allowedModes.includes(mode)) {\n  throw new Error(`Unsupported mode. Use one of: ${allowedModes.join(', ')}`);\n}\n\nconst sourceArg = source.includes(',') ? `--sources=${source}` : `--source=${source}`;\nconst dryArg = dryRun ? ' --dry-run' : '';\nconst command = `cmd /c \"cd /d C:\\\\SpringBoot\\\\WorkSpace\\\\re-scraper && npm run n8n -- ${sourceArg} --mode=${mode}${dryArg}\"`;\n\nreturn [{\n  source,\n  mode,\n  dryRun,\n  command,\n  requestedAt: new Date().toISOString(),\n}];"
+      },
+      "id": "2",
+      "name": "Prepare Command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "={{$json.command}}"
+      },
+      "id": "3",
+      "name": "Run Scraper",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        820,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const stdout = String($json.stdout ?? '').trim();\nconst stderr = String($json.stderr ?? '').trim();\nconst exitCode = Number($json.exitCode ?? 0);\n\nlet parsed;\ntry {\n  parsed = stdout ? JSON.parse(stdout) : null;\n} catch (error) {\n  parsed = {\n    ok: false,\n    parseError: error.message,\n    rawStdout: stdout,\n  };\n}\n\nreturn [{\n  ok: parsed?.ok === true && exitCode === 0,\n  exitCode,\n  stderr,\n  result: parsed,\n  completedAt: new Date().toISOString(),\n}];"
+      },
+      "id": "4",
+      "name": "Parse Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}",
+        "options": {
+          "responseCode": "={{$json.ok ? 200 : 500}}"
+        }
+      },
+      "id": "5",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        300
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Command": {
+      "main": [
+        [
+          {
+            "node": "Run Scraper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Scraper": {
+      "main": [
+        [
+          {
+            "node": "Parse Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Result": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "re-scraper-webhook"
+}

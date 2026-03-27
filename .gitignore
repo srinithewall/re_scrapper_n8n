@@ -13,8 +13,5 @@ diag-*.json
 output.json
 test_*.js
 *.tmp
-clean.js
-api-lookups.js
-n8n-runner.js
-n8n-workflow-re-scraper-webhook.json
 package-lock.json
+
