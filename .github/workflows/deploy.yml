@@ -20,7 +20,7 @@ jobs:
           REMOTE_USER: ${{ secrets.SERVER_USER }}
           TARGET: /home/ubuntu/myproject
           EXCLUDE: "/node_modules/, /.git/, /debug/, /logs_*/, *.log"
-          # Optional: Run a command after deployment
-          # SCRIPT_AFTER: |
-          #   cd /home/ubuntu/myproject
-          #   docker-compose restart n8n
+          # Run a command after deployment to rebuild containers
+          SCRIPT_AFTER: |
+            cd /home/ubuntu/myproject
+            docker-compose up --build -d
