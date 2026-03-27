@@ -12,10 +12,13 @@
     "puppeteer-dry": "node scraper-puppeteer.js --dry-run",
     "n8n": "node n8n-runner.js",
     "n8n-dry": "node n8n-runner.js --dry-run",
-    "server": "node scraper-server.js"
+    "server": "node scraper-server.js",
+    "test-stealth": "node test-stealth-advanced.js"
   },
   "dependencies": {
-    "puppeteer": "^21.11.0"
+    "puppeteer": "^21.11.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   },
   "engines": {
     "node": ">=16"

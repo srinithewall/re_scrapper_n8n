@@ -1045,5 +1045,311 @@
         "icon": "✅"
       }
     ]
+  },
+  {
+    "git": {
+      "hash": "146dc1a",
+      "date": "2026-03-27 18:05:41",
+      "msg": "fix: update n8n pipeline paths and scraper server port"
+    },
+    "results": [
+      {
+        "step": "1",
+        "name": "Dependencies & Core Modules",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "2",
+        "name": "Runtime Configuration & Logging Setup",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "3",
+        "name": "30KB Minimum Image Size Check",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "4",
+        "name": "Image Download & Buffer Management",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "5",
+        "name": "Recursive JSON Extraction Logic",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "6",
+        "name": "API Form Field Construction",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "8",
+        "name": "Phase 1 - Network Interception",
+        "status": "Working",
+        "icon": "✅"
+      }
+    ]
+  },
+  {
+    "git": {
+      "hash": "8e2491e",
+      "date": "2026-03-27 18:12:09",
+      "msg": "fix: include ignored files necessary for scraper server"
+    },
+    "results": [
+      {
+        "step": "1",
+        "name": "Dependencies & Core Modules",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "2",
+        "name": "Runtime Configuration & Logging Setup",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "3",
+        "name": "30KB Minimum Image Size Check",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "4",
+        "name": "Image Download & Buffer Management",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "5",
+        "name": "Recursive JSON Extraction Logic",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "6",
+        "name": "API Form Field Construction",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "8",
+        "name": "Phase 1 - Network Interception",
+        "status": "Working",
+        "icon": "✅"
+      }
+    ]
+  },
+  {
+    "git": {
+      "hash": "947398b",
+      "date": "2026-03-27 19:55:51",
+      "msg": "feat: add Dockerfile and docker-compose for unified deployment"
+    },
+    "results": [
+      {
+        "step": "1",
+        "name": "Dependencies & Core Modules",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "2",
+        "name": "Runtime Configuration & Logging Setup",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "3",
+        "name": "30KB Minimum Image Size Check",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "4",
+        "name": "Image Download & Buffer Management",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "5",
+        "name": "Recursive JSON Extraction Logic",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "6",
+        "name": "API Form Field Construction",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "8",
+        "name": "Phase 1 - Network Interception",
+        "status": "Working",
+        "icon": "✅"
+      }
+    ]
+  },
+  {
+    "git": {
+      "hash": "da3d361",
+      "date": "2026-03-27 21:15:24",
+      "msg": "fix: disable secure cookies in n8n for http access"
+    },
+    "results": [
+      {
+        "step": "1",
+        "name": "Dependencies & Core Modules",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "2",
+        "name": "Runtime Configuration & Logging Setup",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "3",
+        "name": "30KB Minimum Image Size Check",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "4",
+        "name": "Image Download & Buffer Management",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "5",
+        "name": "Recursive JSON Extraction Logic",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "6",
+        "name": "API Form Field Construction",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "8",
+        "name": "Phase 1 - Network Interception",
+        "status": "Working",
+        "icon": "✅"
+      }
+    ]
+  },
+  {
+    "git": {
+      "hash": "521810a",
+      "date": "2026-03-27 21:39:46",
+      "msg": "fix: reconnect n8n to original postgres database"
+    },
+    "results": [
+      {
+        "step": "1",
+        "name": "Dependencies & Core Modules",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "2",
+        "name": "Runtime Configuration & Logging Setup",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "3",
+        "name": "30KB Minimum Image Size Check",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "4",
+        "name": "Image Download & Buffer Management",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "5",
+        "name": "Recursive JSON Extraction Logic",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "6",
+        "name": "API Form Field Construction",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "8",
+        "name": "Phase 1 - Network Interception",
+        "status": "Working",
+        "icon": "✅"
+      }
+    ]
+  },
+  {
+    "git": {
+      "hash": "c31ed6c",
+      "date": "2026-03-27 21:41:33",
+      "msg": "fix: restore n8n workflows with correct database credentials"
+    },
+    "results": [
+      {
+        "step": "1",
+        "name": "Dependencies & Core Modules",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "2",
+        "name": "Runtime Configuration & Logging Setup",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "3",
+        "name": "30KB Minimum Image Size Check",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "4",
+        "name": "Image Download & Buffer Management",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "5",
+        "name": "Recursive JSON Extraction Logic",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "6",
+        "name": "API Form Field Construction",
+        "status": "Working",
+        "icon": "✅"
+      },
+      {
+        "step": "8",
+        "name": "Phase 1 - Network Interception",
+        "status": "Working",
+        "icon": "✅"
+      }
+    ]
   }
 ]

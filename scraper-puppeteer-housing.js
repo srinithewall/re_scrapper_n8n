@@ -1,9 +1,10 @@
 /**
  * PropSync — housing.com Puppeteer Scraper + RE Projects API Submitter
+ * v2 — Advanced Stealth (puppeteer-extra + Indian IP + WebGL Override)
  *
- * Install: npm install puppeteer
+ * Install: npm install puppeteer-extra puppeteer-extra-plugin-stealth
  * Usage:
- *   node scraper-puppeteer-housing.js --limit=10
+ *   PROXY_URL=http://user:pass@host:port node scraper-puppeteer-housing.js --limit=10
  */
 
 // ─────────────────────────────────────────────
@@ -43,9 +44,19 @@ const log = {
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 // ─────────────────────────────────────────────
+// STEALTH CONFIG
+// Set PROXY_URL env var before running:
+//   export PROXY_URL=http://user:pass@residential-proxy-host:port
+// ─────────────────────────────────────────────
+const PROXY_URL = process.env.PROXY_URL || '';
+
+// Must match the EXACT Chromium version bundled in your Docker image.
+// Run `node -e "const p=require('puppeteer'); console.log(p.executablePath())"` 
+// then `<that path> --version` to get the version string and update below.
+const CHROME_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.6312.122 Safari/537.36';
+
+// ─────────────────────────────────────────────
 // STEP 3: 30KB Minimum Image Size Check
-// Function to check file size BEFORE downloading.
-// Skips low-quality thumbnails.
 // ─────────────────────────────────────────────
 function checkImageSize(urlStr) {
   return new Promise((resolve) => {
@@ -55,18 +66,14 @@ function checkImageSize(urlStr) {
       const parsed = new URL(urlStr);
       const reqHead = lib.request({ method: 'HEAD', hostname: parsed.hostname, path: parsed.pathname + parsed.search, timeout: 5000 }, resHead => {
          const len = parseInt(resHead.headers['content-length'] || '0', 10);
-         if (len > 30720) return resolve(len); // If HEAD request gives sufficient size, resolve immediately
-
-         // If HEAD fails or is too small, try a partial GET request
+         if (len > 30720) return resolve(len);
          const reqGet = lib.get(urlStr, { headers: { 'User-Agent': 'Mozilla/5.0', 'Range': 'bytes=0-31000' }, timeout: 5000 }, resGet => {
             let bytes = 0;
             resGet.on('data', c => {
               bytes += c.length;
-              if (bytes > 31000) { reqGet.destroy(); resolve(bytes); } // Stop early if enough bytes are received
+              if (bytes > 31000) { reqGet.destroy(); resolve(bytes); }
             });
-            resGet.on('end', () => {
-               resolve(bytes);
-            });
+            resGet.on('end', () => { resolve(bytes); });
          });
          reqGet.on('error', () => resolve(0));
          reqGet.on('timeout', () => { reqGet.destroy(); resolve(0); });
@@ -92,7 +99,7 @@ function downloadImage(url) {
       res.on('data', c => chunks.push(c));
       res.on('end', () => {
         const buffer = Buffer.concat(chunks);
-        if (buffer.length < 30720) return resolve(null); // Double-verify 30KB
+        if (buffer.length < 30720) return resolve(null);
         resolve(buffer);
       });
     });
@@ -155,8 +162,6 @@ function decodeHtml(str = '') {
 
 // ─────────────────────────────────────────────
 // STEP 5: Recursive JSON Extraction Logic
-// Intercepts Housing.com API responses and 
-// extracts project data directly from the JSON core.
 // ─────────────────────────────────────────────
 function extractFromNextData(obj, depth = 0, results = []) {
   if (depth > 12 || !obj || typeof obj !== 'object') return results;
@@ -169,9 +174,6 @@ function extractFromNextData(obj, depth = 0, results = []) {
     ( (obj.entityType === 'PROJECT' || obj.type === 'project') ? toText(obj.name || obj.title) : null );
 
   if (name && typeof name === 'string' && name.length > 3) {
-    // ─────────────────────────────────────────────
-    // STRATEGIC FILTER: Verify this is a PROJECT
-    // ─────────────────────────────────────────────
     const isProject = 
       obj.entityType === 'PROJECT' || 
       obj.isProject === true || 
@@ -295,7 +297,6 @@ function extractMedia(obj) {
   walk(obj.coverImage); walk(obj.images); walk(obj.details?.images); walk(obj.gallery); walk(obj.imageGallery); walk(obj.projectImages);
   walk(obj.photos); walk(obj.media); walk(obj.projectMedia); walk(obj.project_photos);
   
-  // Extract brochure
   let brochureUrl = '';
   const findPdf = (node, depth = 0) => {
     if (!node || depth > 8 || brochureUrl) return;
@@ -382,7 +383,6 @@ function extractDeveloperName(desc, url) {
 
 // ─────────────────────────────────────────────
 // STEP 6: API Form Field Construction
-// Maps scraped data to the backend database schema.
 // ─────────────────────────────────────────────
 function buildFormFields(property, images = [], imageSizes = [], developerId = null, amenityIds = []) {
   const cfg = CONFIG.api;
@@ -446,14 +446,12 @@ function buildFormFields(property, images = [], imageSizes = [], developerId = n
 async function processAndSubmit(prop, dryRun, apiLookups, dedupeState) {
   log.info(`  Processing "${prop.projectName}"...`);
 
-  // 1. Local Dedupe
   const dedupeKey = normalizeProjectKey(prop.projectName);
   if (dedupeState.projects[dedupeKey]) {
     log.warn(`    [SKIP] Local dedupe (Seen: ${dedupeState.projects[dedupeKey].firstSeenAt})`);
     return { success: false, projectName: prop.projectName, reason: 'Duplicate' };
   }
 
-  // 2. Location Quality Check
   const isHardcodedLat = Math.abs(prop.location.latitude - 12.9698) < 0.0001;
   const isHardcodedLong = Math.abs(prop.location.longitude - 77.7500) < 0.0001;
   if (isHardcodedLat && isHardcodedLong) {
@@ -461,7 +459,6 @@ async function processAndSubmit(prop, dryRun, apiLookups, dedupeState) {
     return { success: false, projectName: prop.projectName, reason: 'Invalid Location' };
   }
 
-  // 3. Parallel Image Verification
   const checkTasks = prop.imageUrls.map(url => () => checkImageSize(url));
   const sizes = await limitConcurrency(checkTasks, 10);
   const validImageUrls = prop.imageUrls.filter((url, i) => sizes[i] > 30720);
@@ -472,7 +469,6 @@ async function processAndSubmit(prop, dryRun, apiLookups, dedupeState) {
     return { success: false, projectName: prop.projectName, reason: 'Low Quality' };
   }
 
-  // 4. Parallel Downloads
   const downloadTasks = validImageUrls.slice(0, 10).map(url => () => downloadImage(url));
   const imageBuffers = await limitConcurrency(downloadTasks, 5);
   const finalBuffers = imageBuffers.filter(b => b !== null);
@@ -481,7 +477,6 @@ async function processAndSubmit(prop, dryRun, apiLookups, dedupeState) {
     return { success: false, projectName: prop.projectName, reason: 'Download Failed' };
   }
 
-  // 5. Developer & Amenity Lookups (with caching handled by apiLookups internally or locally)
   const devName = prop.developerName || 'Unknown';
   let devId = developerCache.get(devName);
   if (!devId) {
@@ -490,7 +485,6 @@ async function processAndSubmit(prop, dryRun, apiLookups, dedupeState) {
   }
   const amenityIds = await apiLookups.resolveAmenities(prop.amenitiesExtracted || []);
 
-  // 6. Build Payload
   const fields = buildFormFields(prop, finalBuffers, validImageSizes, devId, amenityIds);
   const files = finalBuffers.map((buf, i) => ({
     fieldName: `images[${i}].file`,
@@ -499,7 +493,6 @@ async function processAndSubmit(prop, dryRun, apiLookups, dedupeState) {
     buffer: buf
   }));
 
-  // 7. Submit (with Retry)
   if (dryRun) {
     log.success(`    [DRY-RUN] Success identifying "${prop.projectName}"`);
     return { success: true, projectName: prop.projectName, dryRun: true };
@@ -568,10 +561,6 @@ function postFormData(url, fields, files = []) {
 // ─────────────────────────────────────────────
 // PRO-LEVEL UTILITIES
 // ─────────────────────────────────────────────
-
-/**
- * Execute tasks in parallel with a concurrency limit.
- */
 async function limitConcurrency(tasks, limit = 5) {
   const results = [];
   const executing = new Set();
@@ -588,9 +577,6 @@ async function limitConcurrency(tasks, limit = 5) {
   return Promise.all(results);
 }
 
-/**
- * Robust retry mechanism for async functions.
- */
 async function retry(fn, retries = 3, delay = 1000) {
   for (let i = 0; i < retries; i++) {
     try {
@@ -598,12 +584,138 @@ async function retry(fn, retries = 3, delay = 1000) {
     } catch (err) {
       if (i === retries - 1) throw err;
       log.warn(`  [RETRY ${i + 1}/${retries}] Operation failed: ${err.message}. Retrying in ${delay}ms...`);
-      await new Promise(r => setTimeout(r, delay * Math.pow(2, i))); // Exp backoff
+      await new Promise(r => setTimeout(r, delay * Math.pow(2, i)));
     }
   }
 }
 
 const developerCache = new Map();
+
+// ─────────────────────────────────────────────
+// STEALTH HELPERS
+// ─────────────────────────────────────────────
+
+/**
+ * Injects realistic browser fingerprint properties into the page context.
+ * Overrides the most common headless-browser tells:
+ *   - navigator.webdriver (set to undefined)
+ *   - WebGL renderer (SwiftShader → Intel Mesa)
+ *   - navigator.deviceMemory, hardwareConcurrency, languages
+ *   - Chrome runtime object presence
+ */
+async function injectStealthScripts(page) {
+  await page.evaluateOnNewDocument(() => {
+    // 1. Remove webdriver flag
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+
+    // 2. Spoof hardware fingerprint
+    Object.defineProperty(navigator, 'deviceMemory', { get: () => 8 });
+    Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 8 });
+    Object.defineProperty(navigator, 'languages', { get: () => ['hi-IN', 'en-IN', 'en-US', 'en'] });
+    Object.defineProperty(navigator, 'language', { get: () => 'hi-IN' });
+    Object.defineProperty(navigator, 'platform', { get: () => 'Win32' });
+
+    // 3. Spoof WebGL — hides the "SwiftShader" headless renderer string
+    const getParameter = WebGLRenderingContext.prototype.getParameter;
+    WebGLRenderingContext.prototype.getParameter = function(parameter) {
+      if (parameter === 37445) return 'Intel Inc.';   // UNMASKED_VENDOR_WEBGL
+      if (parameter === 37446) return 'Intel(R) UHD Graphics 620';  // UNMASKED_RENDERER_WEBGL
+      return getParameter.call(this, parameter);
+    };
+
+    // 4. Ensure chrome runtime object exists (headless Chrome is missing it)
+    if (!window.chrome) {
+      window.chrome = { runtime: {} };
+    }
+
+    // 5. Spoof plugin count (headless has 0 plugins)
+    Object.defineProperty(navigator, 'plugins', {
+      get: () => {
+        const fakePlugins = [
+          { name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer' },
+          { name: 'Chrome PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai' },
+          { name: 'Native Client', filename: 'internal-nacl-plugin' },
+        ];
+        fakePlugins.length = 3;
+        return fakePlugins;
+      }
+    });
+
+    // 6. Spoof screen resolution to look like a real desktop
+    Object.defineProperty(screen, 'colorDepth', { get: () => 24 });
+  });
+}
+
+/**
+ * Sets Indian-locale HTTP headers on every request.
+ * Housing.com checks Accept-Language and sec-ch-ua for geo consistency.
+ */
+async function setIndianHeaders(page) {
+  await page.setExtraHTTPHeaders({
+    'Accept-Language': 'hi-IN,en-IN;q=0.9,en-US;q=0.8,en;q=0.7',
+    'sec-ch-ua': '"Chromium";v="123", "Google Chrome";v="123", "Not:A-Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"Windows"',
+    'sec-fetch-dest': 'document',
+    'sec-fetch-mode': 'navigate',
+    'sec-fetch-site': 'none',
+    'sec-fetch-user': '?1',
+    'upgrade-insecure-requests': '1',
+  });
+}
+
+/**
+ * Simulates a human scrolling down the page in random chunks.
+ * Avoids the instant full-page scroll that bots typically do.
+ */
+async function humanScrollDown(page) {
+  await page.evaluate(async () => {
+    await new Promise((resolve) => {
+      let totalScrolled = 0;
+      const pageHeight = document.body.scrollHeight;
+      const scroll = () => {
+        // Random scroll chunk between 200px and 600px
+        const chunk = 200 + Math.floor(Math.random() * 400);
+        window.scrollBy(0, chunk);
+        totalScrolled += chunk;
+        if (totalScrolled >= pageHeight * 0.8) {
+          resolve();
+        } else {
+          // Random pause between scroll chunks: 300ms to 900ms
+          setTimeout(scroll, 300 + Math.floor(Math.random() * 600));
+        }
+      };
+      scroll();
+    });
+  });
+}
+
+/**
+ * Detects if the current page is a block/CAPTCHA screen.
+ * Returns an object with isBlocked and reason.
+ */
+async function detectBlock(page) {
+  const title = await page.title().catch(() => '');
+  const html  = await page.content().catch(() => '');
+  const status = page.url(); // post-redirect URL can also reveal blocks
+
+  const blockSignals = [
+    { pattern: /shield/i,                   reason: 'Cloudflare Shield' },
+    { pattern: /captcha/i,                  reason: 'CAPTCHA challenge' },
+    { pattern: /pardon our interruption/i,  reason: 'Imperva/Incapsula block' },
+    { pattern: /access denied/i,            reason: 'Access Denied' },
+    { pattern: /bot detected/i,             reason: 'Bot Detected' },
+    { pattern: /ddos.protection/i,          reason: 'DDoS Protection' },
+    { pattern: /just a moment/i,            reason: 'Cloudflare Challenge' },
+  ];
+
+  for (const signal of blockSignals) {
+    if (signal.pattern.test(title) || signal.pattern.test(html.slice(0, 5000))) {
+      return { isBlocked: true, reason: signal.reason, title };
+    }
+  }
+  return { isBlocked: false, reason: null, title };
+}
 
 // ─────────────────────────────────────────────
 // SCRAPER LOGIC
@@ -612,48 +724,89 @@ async function main() {
   const args = process.argv.slice(2);
   const dryRun = args.includes('--dry-run');
 
+  // Load puppeteer-extra with stealth plugin
   let puppeteer;
-  try { puppeteer = require('puppeteer'); }
-  catch (_) { log.error('Run: npm install puppeteer'); process.exit(1); }
+  try {
+    puppeteer = require('puppeteer-extra');
+    const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+    puppeteer.use(StealthPlugin());
+    log.success('puppeteer-extra + StealthPlugin loaded');
+  } catch (_) {
+    log.error('Run: npm install puppeteer-extra puppeteer-extra-plugin-stealth');
+    process.exit(1);
+  }
 
-  // ─────────────────────────────────────────────
-  // STEP 8: Phase 1 - Network Interception
-  // Navigates to housing.com and captures API 
-  // responses directly from the network traffic.
-  // ─────────────────────────────────────────────
-  log.step('PHASE 1: Scraping housing.com — Bengaluru (Network Intercept)');
+  if (!PROXY_URL) {
+    log.warn('⚠️  No PROXY_URL set. AWS EC2 IPs are blocked by Housing.com.');
+    log.warn('   Set env var: export PROXY_URL=http://user:pass@residential-proxy-host:port');
+    log.warn('   Continuing anyway — will likely get blocked...');
+  } else {
+    log.info(`Proxy configured: ${PROXY_URL.replace(/:([^:@]+)@/, ':****@')}`); // mask password
+  }
+
+  log.step('PHASE 1: Scraping housing.com — Bengaluru (Network Intercept + Stealth)');
+
+  // Build launch args
+  const launchArgs = [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-blink-features=AutomationControlled',
+    '--disable-web-security',
+    '--disable-features=IsolateOrigins,site-per-process',
+    '--flag-switches-begin',
+    '--disable-site-isolation-trials',
+    '--flag-switches-end',
+  ];
+  if (PROXY_URL) {
+    launchArgs.push(`--proxy-server=${PROXY_URL}`);
+  }
+
   const browser = await puppeteer.launch({
     headless: 'new',
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-blink-features=AutomationControlled',
-      '--disable-web-security',
-    ],
+    args: launchArgs,
   });
 
   const allProperties = [];
   const interceptedResponses = [];
-  const reports = []; // Collect results for summary
+  const reports = [];
 
-  // ─────────────────────────────────────────────
-  // DEPENDENCY INITIALIZATION
-  // ─────────────────────────────────────────────
   const dedupeState = loadDedupeState(CONFIG.dedupeStateFile);
   const baseDeveloperResolver = await createDeveloperResolver(CONFIG, log);
   const apiLookups = await createApiLookups(CONFIG, baseDeveloperResolver, log);
 
   try {
     const page = await browser.newPage();
-    // RANDOM VIEWPORT for Stealth
-    const viewWidth = 1200 + Math.floor(Math.random() * 400);
-    const viewHeight = 800 + Math.floor(Math.random() * 200);
-    await page.setViewport({ width: viewWidth, height: viewHeight });
-    
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36');
-    await page.setRequestInterception(true);
 
+    // Random viewport — avoids fixed-size headless fingerprint
+    const viewWidth  = 1200 + Math.floor(Math.random() * 400);
+    const viewHeight = 800  + Math.floor(Math.random() * 200);
+    await page.setViewport({ width: viewWidth, height: viewHeight });
+    await page.setUserAgent(CHROME_UA);
+
+    // Proxy authentication (if proxy requires user:pass)
+    if (PROXY_URL) {
+      try {
+        const proxyParsed = new URL(PROXY_URL);
+        if (proxyParsed.username && proxyParsed.password) {
+          await page.authenticate({
+            username: decodeURIComponent(proxyParsed.username),
+            password: decodeURIComponent(proxyParsed.password),
+          });
+          log.info('Proxy authentication configured');
+        }
+      } catch (e) {
+        log.warn(`Could not parse proxy credentials: ${e.message}`);
+      }
+    }
+
+    // Inject stealth fingerprint scripts
+    await injectStealthScripts(page);
+
+    // Set Indian locale headers
+    await setIndianHeaders(page);
+
+    await page.setRequestInterception(true);
     page.on('request', (req) => req.continue());
 
     page.on('response', async (response) => {
@@ -669,6 +822,29 @@ async function main() {
       }
     });
 
+    // ── Homepage Warmup ──
+    // Visiting the homepage first seeds cookies and mimics organic browsing.
+    // Skipping this is a common bot tell.
+    log.info('Warming up session on housing.com homepage...');
+    try {
+      await page.goto('https://housing.com', { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await sleep(3000 + Math.random() * 2000); // 3-5s pause
+      await humanScrollDown(page);
+      await sleep(2000 + Math.random() * 2000); // 2-4s pause after scroll
+    } catch (e) {
+      log.warn(`Warmup navigation failed: ${e.message} — continuing anyway`);
+    }
+
+    // ── Block check after warmup ──
+    const warmupCheck = await detectBlock(page);
+    if (warmupCheck.isBlocked) {
+      log.error(`🚫 Blocked at warmup: ${warmupCheck.reason} (title: "${warmupCheck.title}")`);
+      log.error('   Check your proxy — it may be burned or not routing through India.');
+      await browser.close();
+      process.exit(1);
+    }
+    log.success(`Warmup OK — page title: "${warmupCheck.title}"`);
+
     // ─────────────────────────────────────────────
     // STRATEGIC REFACTOR: Process Page-by-Page
     // ─────────────────────────────────────────────
@@ -678,12 +854,52 @@ async function main() {
     for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
       const url = pageNum === 1 ? CONFIG.scrapeUrl : `${CONFIG.scrapeUrl}?page=${pageNum}`;
       log.info(`Loading page ${pageNum}: ${url}`);
-      interceptedResponses.length = 0; // Clear for each page
+      interceptedResponses.length = 0;
 
-      try { await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 }); } catch (e) {}
-      await sleep(3000 + Math.random() * 3000); // Random delay 3-6s
+      try {
+        // Use domcontentloaded instead of networkidle2 — less fingerprint-able
+        // then wait for a known listing element instead
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      } catch (e) {
+        log.warn(`Navigation error on page ${pageNum}: ${e.message}`);
+      }
 
-      log.data(`Page ${pageNum}: ${interceptedResponses.length} API responses intercepted`);
+      // Wait for listing container OR timeout gracefully
+      try {
+        await page.waitForSelector(
+          '[data-testid="srp-listing"], [class*="project-card"], [class*="listing-card"], article',
+          { timeout: 12000 }
+        );
+      } catch (_) {
+        log.warn(`Page ${pageNum}: listing selector not found — page may be blocked or structure changed`);
+      }
+
+      // Random thinking delay: 5-15s between pages (critical for rate limit avoidance)
+      const thinkTime = 5000 + Math.random() * 10000;
+      log.info(`Page ${pageNum}: thinking for ${Math.round(thinkTime / 1000)}s...`);
+      await sleep(thinkTime);
+
+      // Human scroll before extracting
+      await humanScrollDown(page);
+      await sleep(1500 + Math.random() * 1500);
+
+      // Check for block screen before processing
+      const blockCheck = await detectBlock(page);
+      if (blockCheck.isBlocked) {
+        log.error(`🚫 Page ${pageNum} blocked: ${blockCheck.reason}`);
+        // Save debug screenshot
+        const debugDir = path.join(process.cwd(), 'debug');
+        if (!fs.existsSync(debugDir)) fs.mkdirSync(debugDir, { recursive: true });
+        await page.screenshot({ path: path.join(debugDir, `block-page${pageNum}.png`), fullPage: false });
+        log.error(`   Screenshot saved to debug/block-page${pageNum}.png`);
+        break;
+      }
+
+      log.data(`Page ${pageNum} title: "${blockCheck.title}" — ${interceptedResponses.length} API responses intercepted`);
+
+      // Log HTML length for diagnostics
+      const html = await page.content();
+      log.data(`Page ${pageNum} HTML length: ${html.length} — Has NEXT_DATA: ${html.includes('__NEXT_DATA__')}`);
 
       let pageExtractedCount = 0;
       const propertiesOnPage = [];
@@ -701,7 +917,6 @@ async function main() {
       }
 
       if (pageExtractedCount === 0) {
-        const html = await page.content();
         const nextMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
         if (nextMatch) {
           try {
@@ -712,30 +927,27 @@ async function main() {
       }
       log.success(`Page ${pageNum}: ${pageExtractedCount} projects extracted`);
 
-      // ── Process and Submit these projects immediately ──
-      // This prevents memory bloat for large crawls
       if (propertiesOnPage.length > 0) {
         log.info(`  Processing and submitting ${propertiesOnPage.length} projects from Page ${pageNum}...`);
         for (const prop of propertiesOnPage) {
-          const res = await processAndSubmit(prop, dryRun, apiLookups, dedupeState); // Pass all required deps
+          const res = await processAndSubmit(prop, dryRun, apiLookups, dedupeState);
           reports.push(res);
         }
       }
 
       if (reports.length >= (CONFIG.limit || 10)) break;
     }
-    if (reports.length === 0) { // If no projects were extracted via API/NEXT_DATA after all pages
+
+    if (reports.length === 0) {
       log.warn('  No projects in JSON. Falling back to DOM extraction...');
+      const html = await page.content();
       const rawCards = await page.evaluate(() => {
-        // detail page detection
         const h1 = document.querySelector('h1')?.innerText?.trim();
         if (window.location.href.includes('/projects/page/') && h1) {
-          // Also try to grab images from the detail page
           const imgs = Array.from(document.querySelectorAll('img[src*="housing"]'))
             .map(img => img.src).filter(s => s && s.startsWith('http')).slice(0, 8);
           return [{ projectName: h1, websiteUrl: window.location.href, description: h1 + ' - Residential Project', imageUrls: imgs }];
         }
-        // listing page detection
         return Array.from(document.querySelectorAll('article, [class*="project-card"], [class*="listing-card"]')).map(el => {
           const name = el.querySelector('h1, h2, h3, [class*="title"], [class*="name"]')?.innerText?.trim();
           const url = el.querySelector('a')?.href;
@@ -744,7 +956,6 @@ async function main() {
         }).filter(x => x && !/%| off|Paints/i.test(x.projectName));
       });
 
-      // Normalize DOM cards to match the full structure processAndSubmit expects
       const cards = rawCards.map(c => ({
         ...c,
         imageUrls: c.imageUrls || [],
@@ -765,7 +976,7 @@ async function main() {
           area:        'Bengaluru',
           addressLine: 'Bengaluru',
           city:        CONFIG.api.defaultCity || 'Bengaluru',
-          latitude:    0,       // use 0 so location quality gate passes (not == 12.9698)
+          latitude:    0,
           longitude:   0,
         },
       }));
@@ -778,14 +989,10 @@ async function main() {
   } catch (err) { log.error(`  Scrape failed: ${err.message}`); }
   finally { await browser.close(); }
 
-  // Total Scraped is now in reports
   const successCount = reports.filter(r => r.success).length;
   const skipCount = reports.filter(r => !r.success).length;
   log.success(`Total processed: ${reports.length} (Success: ${successCount}, Skipped: ${skipCount})`);
 
-  // ─────────────────────────────────────────────
-  // SCRAPING SUMMARY
-  // ─────────────────────────────────────────────
   log.step('PHASE 2: Generation Summary');
   const results = { success: [], failed: [], skipped: [] };
   reports.forEach(r => {

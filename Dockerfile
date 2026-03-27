@@ -22,6 +22,9 @@ RUN apt-get update && apt-get install -y \
     libxrandr2 \
     libxrender1 \
     libxtst6 \
+    # Required by puppeteer-extra-plugin-stealth for font fingerprint masking
+    fonts-liberation \
+    fonts-noto \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
@@ -29,8 +32,13 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy package files and install dependencies
+# puppeteer-extra and puppeteer-extra-plugin-stealth are now in package.json
 COPY package*.json ./
 RUN npm install
+
+# Print Chromium version at build time so you can verify the UA string in the scraper
+# matches the actual bundled Chromium version
+RUN node -e "const p = require('puppeteer'); console.log('Chromium path:', p.executablePath())" || true
 
 # Copy the rest of the application code
 COPY . .
